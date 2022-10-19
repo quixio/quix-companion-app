@@ -13,6 +13,6 @@ jobs:
       with:
         dotnet-version: '5.0.x'
     - name: Install dependencies
-      run: nuget restore <sln_file_path>
+      run: nuget restore QuixTracker.sln
     - name: Build
-      run: msbuild <csproj_file_path> /t:PackageForAndroid /p:Configuration=Debug
+      run: msbuild QuixTracker.Android/QuixTracker.Android.csproj /t:PackageForAndroid /p:Configuration=Debug
