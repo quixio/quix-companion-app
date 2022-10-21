@@ -12,14 +12,21 @@
     </ContentPage.Resources>
     <ContentPage.Content>
         <StackLayout>
+            
+            <Button Text="Scan QR Code" Clicked="Button_OnClicked"></Button>
 
             <Label Text="Workspace "></Label>
             <Entry Text="{Binding Path=Workspace}" IsReadOnly="{Binding Connected}" HorizontalOptions="FillAndExpand" />
 
-
             <Label Text="Token"></Label>
             <Entry Text="{Binding Path=Token}" IsReadOnly="{Binding Connected}" HorizontalOptions="FillAndExpand" />
 
+            <Label Text="Token"></Label>
+            <Entry Text="{Binding Path=Topic}" IsReadOnly="{Binding Connected}" HorizontalOptions="FillAndExpand" />
+
+            <Label Text="Token"></Label>
+            <Entry Text="{Binding Path=NotificationsTopic}" IsReadOnly="{Binding Connected}" HorizontalOptions="FillAndExpand" />
+            
             <Label Text="DeviceId: "></Label>
             <Entry Text="{Binding DeviceId}" IsReadOnly="{Binding Connected}" HorizontalOptions="FillAndExpand" />
             
