@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Xamarin.Essentials;
 
 namespace QuixTracker.Models
@@ -28,26 +28,44 @@ namespace QuixTracker.Models
             this.Team = Preferences.Get("Team", "My Team");
             this.Interval = Preferences.Get("Interval", 250);
             this.LogGForce = Preferences.Get("LogGForce", true);
+            
             this.WorkspaceId = Preferences.Get("Workspace", "");
             this.Token = Preferences.Get("Token", "");
-
-            // these will be populated by Quix when you save the project to your workspace.
-            this.workspaceId = "quix-iotdemo";
-            this.subDomain = "platform";
-            this.token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoicXVpeCIsImh0dHBzOi8vcXVpeC5haS9vd25lcl9pZCI6ImF1dGgwfGJjZmZmYTYyLTE1YTQtNDllYy05OWE0LWQ1Mjk5OTBkN2I1MSIsImh0dHBzOi8vcXVpeC5haS90b2tlbl9pZCI6IjcxOTIxNDg0LTcxMDQtNDkzZS1hYzk3LTk5NTIyYzk1YjlkYSIsImh0dHBzOi8vcXVpeC5haS9leHAiOiIxNzAzMTEzMjAwIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnF1aXguYWkvIiwic3ViIjoiMVZXVUtKUEFaaUFCWVNwbFg1WXAxb2dtTTFoazlLMDhAY2xpZW50cyIsImF1ZCI6InF1aXgiLCJpYXQiOjE2NDg3MTkyMjAsImV4cCI6MTY1MTMxMTIyMCwiYXpwIjoiMVZXVUtKUEFaaUFCWVNwbFg1WXAxb2dtTTFoazlLMDgiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.h0n2xE768f6R871r_S1GFZnAG_PIpINiFRn3qK-drHWl9gpUV8REzosU3HlMZx8BJGUBNqL2I-FVncdIf49f32GJOEO6RQ9YSXTDHEcbYBTFE2fXiUMWpPFd6iY-GLfMfY1WJt4XLq9ixw0dN1Nc360cW8vtXoXivnqfpIfjKaB2JYodC4GRY_WPunwjq85mjAdME0nxb8fKjDzuDH_MpfPfuWR4XJaNZ2qcUWkJM3I0i-Svb4cbzd9rrNpUQE4x2MwX5hInMIPblZ8OInvNCN7enPmsAliqfL_w2h-x_r554byIb8T1yjQPfqtTThMB5I66YGXRY4vsUKeAI87Ihw";
-            this.topic = "phone-data";
-            this.notificationsTopic = "phone-out";
-
-            // debug values
-            // this.token = "";
-            // this.workspaceId = "";
-            // this.subDomain = "dev";
-            // this.topic = "phone";
+            this.Topic = Preferences.Get("Topic", "phone-data");
+            this.NotificationsTopic = Preferences.Get("NotificationsTopic", "phone-out");
+            this.SubDomain = Preferences.Get("SubDomain", "platform");
         }
 
-        public string SubDomain => subDomain;
-        public string Topic => topic;
-        public string NotificationsTopic => notificationsTopic;
+        public string SubDomain
+        {
+            get { return subDomain; }
+            set
+            {
+                subDomain = value;
+                Preferences.Set("SubDomain", value);
+            }
+        }
+
+        public string Topic
+        {
+            get { return topic; }
+            set
+            {
+                topic = value;
+                Preferences.Set("Topic", value);
+            }
+        }
+
+        public string NotificationsTopic
+        {
+            get { return notificationsTopic; }
+            set
+            {
+                notificationsTopic = value;
+                Preferences.Set("NotificationsTopic", value);
+
+            }
+        }
 
         public string WorkspaceId
         {

@@ -1,7 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using Flurl.Util;
+using Newtonsoft.Json;
 using QuixTracker.Services;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using ZXing.Net.Mobile.Forms;
 
 namespace QuixTracker
 {
@@ -18,8 +24,13 @@ namespace QuixTracker
         private ConnectionService connectionService;
         private string workspace;
         private string token;
+        private string subdomain;
+        private string topic;
+        private string notificationsTopic;
         private string bluetoothDevice;
         private List<string> bluetoothDevices;
+
+        private readonly HttpClient client;
 
         public string Workspace
         {
@@ -40,6 +51,36 @@ namespace QuixTracker
                 token = value;
                 this.OnPropertyChanged();
                 connectionService.Settings.Token = value;
+            }
+        }
+        public string Topic
+        {
+            get { return topic; }
+            set
+            {
+                topic = value;
+                this.OnPropertyChanged();
+                connectionService.Settings.Topic = value;
+            }
+        }
+        public string NotificationsTopic
+        {
+            get { return notificationsTopic; }
+            set
+            {
+                notificationsTopic = value;
+                this.OnPropertyChanged();
+                connectionService.Settings.NotificationsTopic = value;
+            }
+        }
+        public string Subdomain
+        {
+            get { return subdomain; }
+            set
+            {
+                subdomain = value;
+                this.OnPropertyChanged();
+                connectionService.Settings.SubDomain = value;
             }
         }
 
@@ -141,10 +182,64 @@ namespace QuixTracker
             this.Team = connectionService.Settings.Team;
             this.LogGForce = connectionService.Settings.LogGForce;
             this.Interval = connectionService.Settings.Interval.ToString();
+            
             this.Workspace = connectionService.Settings.WorkspaceId;
             this.Token = connectionService.Settings.Token;
+            this.Topic = connectionService.Settings.Topic;
+            this.NotificationsTopic = connectionService.Settings.NotificationsTopic;
+            this.Subdomain = connectionService.Settings.SubDomain;
+
+            client = new HttpClient();
 
             BindingContext = this;
         }
+
+        private async void Button_OnClicked(object sender, EventArgs e)
+        {
+            ZXingScannerPage scanPage = new ZXingScannerPage();
+            scanPage.OnScanResult += (result) =>
+            {
+                scanPage.IsScanning = false;
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    Navigation.PopAsync();
+
+                    var rtn = result.Text.StripQuotes();
+                    
+                    GetTokenFromUrl(rtn);
+                });
+            };
+            await Navigation.PushAsync(scanPage);
+        }
+
+        private string TryGetDictionaryValue(string key, Dictionary<string, string> dict)
+        {
+            return dict.TryGetValue(key, out var value) ? value : "";
+        }
+        
+        private void GetTokenFromUrl(string url)
+        {
+            try
+            {
+                var response = client.GetAsync(url);
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    string content = response.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    var o = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
+
+                    Token = TryGetDictionaryValue("bearerToken", o);
+                    Topic = TryGetDictionaryValue("topic", o);
+                    Workspace = TryGetDictionaryValue("workspaceId", o);
+                    NotificationsTopic = TryGetDictionaryValue("notificationsTopic", o);
+                    Subdomain = TryGetDictionaryValue("subdomain", o);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    
     }
 }
