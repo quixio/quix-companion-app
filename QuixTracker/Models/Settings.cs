@@ -28,7 +28,7 @@ namespace QuixTracker.Models
             this.Team = Preferences.Get("Team", "My Team");
             this.Interval = Preferences.Get("Interval", 250);
             this.LogGForce = Preferences.Get("LogGForce", true);
-            
+
             this.WorkspaceId = Preferences.Get("Workspace", "");
             this.Token = Preferences.Get("Token", "");
             this.Topic = Preferences.Get("Topic", "phone-data");
@@ -158,6 +158,16 @@ namespace QuixTracker.Models
                 logGForce = value;
                 Preferences.Set("logGForce", value);
             }
+        }
+
+        public string CheckSettings()
+        {
+            if (string.IsNullOrWhiteSpace(this.WorkspaceId)) return "WorkspaceId is empty";
+            if (string.IsNullOrWhiteSpace(this.Token)) return "Token is empty";
+            if (string.IsNullOrWhiteSpace(this.Topic)) return "Topic is empty";
+            if (string.IsNullOrWhiteSpace(this.NotificationsTopic)) return "NotificationTopic is empty";
+            if (string.IsNullOrWhiteSpace(this.SubDomain)) return "Subdomain is empty";
+            return "";
         }
     }
 }

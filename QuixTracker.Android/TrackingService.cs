@@ -61,8 +61,6 @@ namespace QuixTracker.Droid
 			this.loggingService = LoggingService.Instance;
 		}
 
-
-
 		#region overrides
 
 		public override IBinder OnBind(Intent intent)
@@ -72,6 +70,7 @@ namespace QuixTracker.Droid
 
 		public void Start()
 		{
+			Logger.Instance.Log("Starting tracking service");
 		}
 
 		public override void OnCreate()
@@ -82,7 +81,6 @@ namespace QuixTracker.Droid
 
 			this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 			this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
-
 
 			this.cancellationTokenSource = new CancellationTokenSource();
 
@@ -153,7 +151,15 @@ namespace QuixTracker.Droid
 
 		public async void DoWork()
 		{
-			this.sensorManager = GetSystemService(Context.SensorService) as SensorManager;
+			var settingsMessage = this.connectionService.Settings.CheckSettings();
+            if (settingsMessage != "")
+			{
+				this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
+				this.notificationService.SendForegroundNotification("Settings Error", settingsMessage);
+				Logger.Instance.Log("Settings Error: " + settingsMessage);
+			}
+
+            this.sensorManager = GetSystemService(Context.SensorService) as SensorManager;
 
 			this.gyroSensor = this.sensorManager.GetDefaultSensor(SensorType.Accelerometer);
 			this.tempSensor = this.sensorManager.GetDefaultSensor(SensorType.AmbientTemperature);
@@ -206,6 +212,7 @@ namespace QuixTracker.Droid
 			}
 			catch (Exception ex)
 			{
+				Logger.Instance.Log(ex.ToString());
  				this.connectionService.OnConnectionError(ex.Message, ex);
 				this.lastErrorMessage = DateTime.Now;
 				this.connectionService.OnInputConnectionChanged(ConnectionState.Disconnected);

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:app="clr-namespace:QuixTracker"
+             x:Class="QuixTracker.Logger">
+    <ContentPage.Resources>
+        <app:NegativeNullConverter x:Key="NegativeNullConverter" />
+        <app:NullConverter x:Key="NullConverter" />
+        <app:NegativeConverter x:Key="NegativeConverter" />
+        <app:LogicalConverter x:Key="LogicalConverter" />
+
+    </ContentPage.Resources>
+    <ContentPage.Content>
+        <ScrollView>
+            <StackLayout>
+                <Label Text="Logs"></Label>
+                <Label Text="{Binding Path=FullLog}" HorizontalOptions="FillAndExpand" />
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

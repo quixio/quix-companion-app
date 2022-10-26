@@ -17,7 +17,6 @@ namespace QuixTracker.Services
 
         public event EventHandler<EventDataDTO> EventDataRecieved;
 
-
         public QuixService(ConnectionService connectionService)
         {
             this.connectionService = connectionService;
@@ -69,10 +68,7 @@ namespace QuixTracker.Services
 
         public async Task StartOutputConnection()
         {
-
-
             this.outputConnection = CreateWebSocketConnection("writer");
-
 
             this.outputConnection.Reconnecting += (e) =>
             {
@@ -104,7 +100,6 @@ namespace QuixTracker.Services
         public async Task CloseStream(string streamId)
         {
             await this.outputConnection.InvokeAsync("CloseStream", this.connectionService.Settings.Topic, streamId);
-
         }
 
         public async Task<string> CreateStream(string deviceId, string rider, string team, string sesionName)

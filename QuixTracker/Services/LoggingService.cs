@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using QuixTracker.Models;
-using Xamarin.Essentials;
-using Xamarin.Forms;
 
 namespace QuixTracker.Services
 {
@@ -40,25 +37,37 @@ namespace QuixTracker.Services
 
         public void LogInformation(string message)
         {
+            Logger.Instance.Log("Logging Information: " + message);
+
             SendEvent("Information", message);
         }
 
         public void LogError(string message, Exception ex = null)
         {
+            Logger.Instance.Log("Logging Error: " + message);
+
             SendEvent("Error", message + "\n" +  ex?.ToString());
         }
 
         private void SendEvent(string id, string value)
         {
-            var evt = new EventDataDTO
+            try
             {
-                Id = id,
-                Timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000,
-                Value = value
-            };
+                var evt = new EventDataDTO
+                {
+                    Id = id,
+                    Timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000,
+                    Value = value
+                };
 
-            this.client.PostAsync($"topics/quix-tracker-logs/streams/{this.streamId}/events/data", new StringContent(JsonSerializer.Serialize(new List<EventDataDTO> { evt }), Encoding.UTF8, "application/json"));
-
+                this.client.PostAsync($"topics/quix-tracker-logs/streams/{this.streamId}/events/data", new StringContent(JsonSerializer.Serialize(new List<EventDataDTO> { evt }), Encoding.UTF8, "application/json"));
+            }
+            catch(Exception ex)
+            {
+                Logger.Instance.Log("Error sending log event to Quix:");
+                Logger.Instance.Log(ex.ToString());
+                Logger.Instance.Log(ex.Message);
+            }
 
         }
     }

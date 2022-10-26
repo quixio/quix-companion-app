@@ -22,7 +22,8 @@ namespace QuixTracker
         public List<MainMenuItem> MainMenuItems => new List<MainMenuItem>()
         {
             new MainMenuItem() {Title = "Dashboard", TargetType = typeof(Dashboard), Factory = () => new Dashboard()},
-            new MainMenuItem() {Title = "Settings", TargetType = typeof(Settings), Factory = () => new Settings()}
+            new MainMenuItem() {Title = "Settings", TargetType = typeof(Settings), Factory = () => new Settings()},
+            new MainMenuItem() {Title = "Log", TargetType = typeof(Logger), Factory = () => { return Logger.Instance; } }
         };
 
         public MainPage()

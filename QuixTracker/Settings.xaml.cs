@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using Flurl.Util;
 using Newtonsoft.Json;
@@ -21,6 +20,7 @@ namespace QuixTracker
         private string team;
         private bool logGForce;
         private string sessionName;
+        private Logger logger;
         private ConnectionService connectionService;
         private string workspace;
         private string token;
@@ -32,6 +32,7 @@ namespace QuixTracker
 
         private readonly HttpClient client;
 
+        #region props
         public string Workspace
         {
             get { return workspace; }
@@ -170,10 +171,13 @@ namespace QuixTracker
                 connectionService.Settings.LogGForce = value;
             }
         }
+        #endregion
 
         public Settings()
         {
             InitializeComponent();
+            this.logger = Logger.Instance;
+            this.logger.Log("Loading settings");
 
             this.connectionService = ConnectionService.Instance;
             this.SessionName = connectionService.Settings.SessionName;
@@ -205,7 +209,9 @@ namespace QuixTracker
                     Navigation.PopAsync();
 
                     var rtn = result.Text.StripQuotes();
-                    
+
+                    logger.Log("Got return from QR Scan");
+                    logger.Log(rtn);
                     GetTokenFromUrl(rtn);
                 });
             };
@@ -232,12 +238,19 @@ namespace QuixTracker
                     Workspace = TryGetDictionaryValue("workspaceId", o);
                     NotificationsTopic = TryGetDictionaryValue("notificationsTopic", o);
                     Subdomain = TryGetDictionaryValue("subdomain", o);
+
+                    logger.Log("Decoded JSON from QR Share:");
+                    logger.Log("Token=" + Token);
+                    logger.Log("Topic=" + Topic);
+                    logger.Log("Workspace=" + Workspace);
+                    logger.Log("NotificationsTopic=" + NotificationsTopic);
+                    logger.Log("Subdomain=" + Subdomain);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                logger.Log(e.Message);
             }
         }
     

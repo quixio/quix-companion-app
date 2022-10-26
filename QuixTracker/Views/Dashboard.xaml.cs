@@ -20,6 +20,7 @@ namespace QuixTracker.Views
         private bool reconnecting;
         private string errorMessage;
         private ConnectionService connectionService;
+        private QuixService quixServiceInstance;
         private CurrentData currentData;
         private string speed;
         private string accuracy;
@@ -202,6 +203,10 @@ namespace QuixTracker.Views
         }
 
         private void ConnectionService_ConnectionError(object sender, string e)
+        {
+            this.ErrorMessage = e;
+        }
+        private void QuixService_ConnectionError(object sender, string e)
         {
             this.ErrorMessage = e;
         }
