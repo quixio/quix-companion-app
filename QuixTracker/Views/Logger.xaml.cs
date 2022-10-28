@@ -1,6 +1,4 @@
-using Android.OS;
-using Java.Lang;
-using System;
+using System.Text;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
