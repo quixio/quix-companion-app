@@ -193,7 +193,7 @@ namespace QuixTracker.Views
 
         private void ConnectionService_DataReceived(object sender, CurrentData e)
         {
-            this.Speed = ((int)e.Speed).ToString();
+            this.Speed = ((int)(e.Speed * 3.6)).ToString();
             this.Accuracy = ((int)e.Accuracy).ToString();
             this.BufferSize = e.LocationBufferSize.ToString();
             this.Bearing = e.Bearing.ToString("0.00");
