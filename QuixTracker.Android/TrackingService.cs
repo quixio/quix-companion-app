@@ -253,14 +253,14 @@ namespace QuixTracker.Droid
 			ParameterDataDTO data = null;
 			while (!this.cancellationTokenSource.IsCancellationRequested || this.locationQueue.Count > 0)
 			{
-				if (data == null && !this.locationQueue.TryTake(out data))
-				{
-					data = this.locationQueue.Take(this.cancellationTokenSource.Token);
-				}
-
 				try
 				{
-					await this.quixService.SendParameterData(this.streamId, data);
+                    if (data == null && !this.locationQueue.TryTake(out data))
+                    {
+                        data = this.locationQueue.Take(this.cancellationTokenSource.Token);
+                    }
+
+                    await this.quixService.SendParameterData(this.streamId, data);
 					data = null;
 
 					this.connectionService.OnOutputConnectionChanged(
@@ -268,7 +268,6 @@ namespace QuixTracker.Droid
 
 					this.CleanErrorMessage();
 				}
-
 				catch (Exception ex)
 				{
 					this.connectionService.OnConnectionError(ex.Message, ex);
