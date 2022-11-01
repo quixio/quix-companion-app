@@ -77,10 +77,9 @@ namespace QuixTracker.Droid
 		{
 			isRunning = false;
 
-            task = new Task(DoWork);
-
             this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
+            task = new Task(DoWork);
             this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
@@ -146,11 +145,14 @@ namespace QuixTracker.Droid
 
 		public async void DoWork()
 		{
-			var settingsMessage = this.connectionService.Settings.CheckSettings();
+			// need to send this within the 1st 5 seconds of app start up or the app crashes.
+            this.notificationService.SendForegroundNotification("Quix Tracker", "Starting up...");
+
+            var settingsMessage = this.connectionService.Settings.CheckSettings();
             if (settingsMessage != "")
 			{
 				this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
-				this.notificationService.SendForegroundNotification("Settings Error", settingsMessage);
+				this.notificationService.SendForegroundNotification("Quix Tracker", $"Error: {settingsMessage}");
 				Logger.Instance.Log("Settings Error: " + settingsMessage);
 			}
 
@@ -212,7 +214,7 @@ namespace QuixTracker.Droid
 				await this.StartGeoLocationTracking();
 				this.queueConsumer = this.ConsumeQueue();
 
-                this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
+                this.notificationService.SendForegroundNotification("Quix Tracker", "Tracking in progress...");
                 this.loggingService.LogInformation("Tracking in progress");
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
