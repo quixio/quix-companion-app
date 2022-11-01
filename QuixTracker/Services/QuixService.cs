@@ -4,6 +4,7 @@ using QuixTracker.Models;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace QuixTracker.Services
@@ -63,7 +64,14 @@ namespace QuixTracker.Services
             };
 
 
-            await this.inputConnection.StartAsync();
+            try
+            {
+                await this.inputConnection.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                var e = ex;
+            }
         }
 
         public async Task StartOutputConnection()

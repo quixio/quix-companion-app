@@ -182,26 +182,39 @@ namespace QuixTracker.Droid
 			try
 			{
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connecting);
+				try
+				{
+                    await RetryService.Execute(async () => await this.quixService.StartInputConnection());
+                }
+				catch (Exception ex)
+				{
+					this.loggingService.LogError("Failed to start input connection", ex);
+				}
 
-
-				await this.quixService.StartInputConnection();
-				await this.quixService.StartOutputConnection();
-
-				this.streamId = await this.quixService.CreateStream(
-					this.connectionService.Settings.DeviceId,
-					this.connectionService.Settings.Rider,
-					this.connectionService.Settings.Team,
-					this.connectionService.Settings.SessionName);
-
+                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Connection error: please check your internet connection", ex));
+                
 				this.CleanErrorMessage();
 
+                this.streamId = await RetryService.Execute(async () => await this.quixService.CreateStream(
+                    this.connectionService.Settings.DeviceId,
+                    this.connectionService.Settings.Rider,
+                    this.connectionService.Settings.Team,
+                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Failed to create data stream: check your internet connection", ex));
+                
+				this.CleanErrorMessage();
 
-				await this.quixService.SubscribeToEvent(this.streamId, "notification");
+                try
+				{
+                    await RetryService.Execute(async () => await this.quixService.SubscribeToEvent(this.streamId, "notification"));
+                }
+				catch (Exception ex)
+				{
+                    this.loggingService.LogError("Failed to subscribe to notifications", ex);
+                }
 
-				this.quixService.EventDataRecieved += QuixService_EventDataRecieved;
+                this.quixService.EventDataRecieved += QuixService_EventDataRecieved;
 
-
-				this.StartGeoLocationTracking();
+				await this.StartGeoLocationTracking();
 				this.queueConsumer = this.ConsumeQueue();
 
 				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -210,7 +223,6 @@ namespace QuixTracker.Droid
 					this.gforceTracking();
 				}
 				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
 
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connected);
 			}
