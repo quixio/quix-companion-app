@@ -77,16 +77,16 @@ namespace QuixTracker.Droid
 		{
 			isRunning = false;
 
-			task = new Task(DoWork);
+            this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
-			this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
-			this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
+            task = new Task(() =>
+			{
+				DoWork();
+                this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
+                this.loggingService.LogInformation("Tracking in progress");
+            });
 
 			this.cancellationTokenSource = new CancellationTokenSource();
-
-			this.loggingService.LogInformation("Tracking in progress");
-
-
 		}
 
 		public override async void OnDestroy()
