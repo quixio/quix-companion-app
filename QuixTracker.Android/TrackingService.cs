@@ -79,12 +79,7 @@ namespace QuixTracker.Droid
 
             this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
-            task = new Task(() =>
-			{
-				DoWork();
-                this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
-                this.loggingService.LogInformation("Tracking in progress");
-            });
+            task = new Task(DoWork);
 
 			this.cancellationTokenSource = new CancellationTokenSource();
 		}
@@ -217,8 +212,11 @@ namespace QuixTracker.Droid
 				await this.StartGeoLocationTracking();
 				this.queueConsumer = this.ConsumeQueue();
 
-				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				if (this.connectionService.Settings.LogGForce)
+                this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
+                this.loggingService.LogInformation("Tracking in progress");
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                if (this.connectionService.Settings.LogGForce)
 				{
 					this.gforceTracking();
 				}
