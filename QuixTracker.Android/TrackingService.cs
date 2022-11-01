@@ -77,11 +77,11 @@ namespace QuixTracker.Droid
 		{
 			isRunning = false;
 
-            this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
-
             task = new Task(DoWork);
 
-			this.cancellationTokenSource = new CancellationTokenSource();
+            this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
+
+            this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		public override async void OnDestroy()
@@ -186,7 +186,7 @@ namespace QuixTracker.Droid
 					this.loggingService.LogError("Failed to start input connection", ex);
 				}
 
-                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Output connection error", ex));
+                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Error: failed to establish connection", ex));
                 
 				this.CleanErrorMessage();
 
@@ -194,7 +194,7 @@ namespace QuixTracker.Droid
                     this.connectionService.Settings.DeviceId,
                     this.connectionService.Settings.Rider,
                     this.connectionService.Settings.Team,
-                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Failed to create output stream", ex));
+                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Error: failed to create output stream", ex));
                 
 				this.CleanErrorMessage();
 

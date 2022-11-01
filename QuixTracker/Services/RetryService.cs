@@ -15,18 +15,23 @@ namespace QuixTracker.Services
         public static async Task Execute(Func<Task> action, int retries = 5, int interval = 500, Action<Exception> errorHandler = null)
         {
             var retry = 0;
-            start:
+            var handlerCalled = false;
+        start:
             try
             {
-                retry++;
+                if (retries > 0)
+                    retry++;
                 await action();
             }
             catch (Exception ex)
             {
                 if (retries > 0 && retry > retries)
                     throw;
-                if (errorHandler != null)
+                if (errorHandler != null && !handlerCalled)
+                {
                     errorHandler(ex);
+                    handlerCalled = true;
+                }
                 await Task.Delay(interval);
                 goto start;
             }
@@ -42,18 +47,23 @@ namespace QuixTracker.Services
         public static async Task<T> Execute<T>(Func<Task<T>> action, int retries = 5, int interval = 500, Action<Exception> errorHandler = null)
         {
             var retry = 0;
+            var handlerCalled = false;
         start:
             try
             {
-                retry++;
+                if (retries > 0)
+                    retry++;
                 return await action();
             }
             catch (Exception ex)
             {
                 if (retries > 0 && retry > retries)
                     throw;
-                if (errorHandler != null)
+                if (errorHandler != null && !handlerCalled)
+                {
                     errorHandler(ex);
+                    handlerCalled = true;
+                }
                 await Task.Delay(interval);
                 goto start;
             }
