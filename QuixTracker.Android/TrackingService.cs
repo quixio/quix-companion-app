@@ -168,12 +168,22 @@ namespace QuixTracker.Droid
 			OnResume();
 
 			this.btAdapter = BluetoothAdapter.DefaultAdapter;
-			btAdapter.StartDiscovery();
-
-			this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData,  this.locationQueue, cancellationTokenSource.Token);
-			//this.garminSpeedSensorDiscovery = new GarminSpeedSensorDiscovery(this.btAdapter, Application.Context, locationQueue, cancellationTokenSource.Token);
-			this.heartRateDiscovery.Connect();
-			////this.garminSpeedSensorDiscovery.Connect();
+			if (this.btAdapter != null)
+			{
+				if (btAdapter.StartDiscovery())
+				{
+					this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
+					this.heartRateDiscovery.Connect();
+				}
+				else
+				{
+                    this.loggingService.LogError("Abort heart rate tracking: failed to discover bluetooth device");
+                }
+			}
+			else
+			{
+                this.loggingService.LogInformation("Abort heart rate tracking: bluetooth adapter not found");
+            }
 
 			try
 			{
