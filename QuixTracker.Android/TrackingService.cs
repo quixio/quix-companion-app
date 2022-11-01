@@ -170,16 +170,10 @@ namespace QuixTracker.Droid
 			this.btAdapter = BluetoothAdapter.DefaultAdapter;
 			if (this.btAdapter != null)
 			{
-				if (btAdapter.StartDiscovery())
-				{
-					this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
-					this.heartRateDiscovery.Connect();
-				}
-				else
-				{
-                    this.loggingService.LogError("Abort heart rate tracking: failed to discover bluetooth device");
-                }
-			}
+                btAdapter.StartDiscovery();
+                this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
+                this.heartRateDiscovery.Connect();
+            }
 			else
 			{
                 this.loggingService.LogInformation("Abort heart rate tracking: bluetooth adapter not found");
