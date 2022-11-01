@@ -186,7 +186,7 @@ namespace QuixTracker.Droid
 					this.loggingService.LogError("Failed to start input connection", ex);
 				}
 
-                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Connection error: please check your internet connection", ex));
+                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Output connection error", ex));
                 
 				this.CleanErrorMessage();
 
@@ -194,7 +194,7 @@ namespace QuixTracker.Droid
                     this.connectionService.Settings.DeviceId,
                     this.connectionService.Settings.Rider,
                     this.connectionService.Settings.Team,
-                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Failed to create data stream: check your internet connection", ex));
+                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Failed to create output stream", ex));
                 
 				this.CleanErrorMessage();
 
