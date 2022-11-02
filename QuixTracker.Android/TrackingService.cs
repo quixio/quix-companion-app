@@ -151,9 +151,6 @@ namespace QuixTracker.Droid
 
 		public async void DoWork()
 		{
-			// need to send this within the 1st 5 seconds of app start up or the app crashes.
-            this.notificationService.SendForegroundNotification("Quix Tracker", "Starting up...");
-
             var settingsMessage = this.connectionService.Settings.CheckSettings();
             if (settingsMessage != "")
 			{
@@ -194,7 +191,11 @@ namespace QuixTracker.Droid
 					this.loggingService.LogError("Failed to start input connection", ex);
 				}
 
-                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) => this.connectionService.OnConnectionError("Error: failed to establish connection", ex));
+                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) =>
+				{
+					this.notificationService.SendForegroundNotification("Quix Tracker", "Failed to connect to Quix");
+					this.connectionService.OnConnectionError("Failed to connect to Quix", ex);
+                });
                 
 				this.CleanErrorMessage();
 
