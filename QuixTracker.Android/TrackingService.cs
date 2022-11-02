@@ -100,9 +100,15 @@ namespace QuixTracker.Droid
 				{
 
 				}
-				await this.quixService.CloseStream(this.streamId);
 
-
+				try
+				{
+                    await this.quixService.CloseStream(this.streamId);
+                }
+				catch (Exception ex)
+				{
+					this.loggingService.LogError($"Failed to close stream: {streamId ?? String.Empty}", ex);
+				}
 
 				isRunning = false;
 
