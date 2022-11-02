@@ -288,7 +288,7 @@ namespace QuixTracker.Droid
 				}
 				catch (Exception ex)
 				{
-					this.connectionService.OnConnectionError(ex.Message, ex);
+					this.connectionService.OnConnectionError("Error sending data: connection error", ex);
 					this.lastErrorMessage = DateTime.Now;
 				}
 
