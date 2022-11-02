@@ -103,8 +103,6 @@ namespace QuixTracker.Services
 
         }
 
-       
-
         public async Task CloseStream(string streamId)
         {
             await this.outputConnection.InvokeAsync("CloseStream", this.connectionService.Settings.Topic, streamId);
@@ -117,7 +115,6 @@ namespace QuixTracker.Services
             {
                 sesionName = streamId;
             }
-
 
             var streamDetails = new
             {
@@ -138,9 +135,7 @@ namespace QuixTracker.Services
 
         public async Task SendParameterData(string streamId, ParameterDataDTO data)
         {
-
             await this.outputConnection.InvokeAsync("SendParameterData", this.connectionService.Settings.Topic, streamId, data);
-
         }
 
         public async void Dispose()

@@ -7,6 +7,8 @@ namespace QuixTracker
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class Logger : ContentPage
     {
+        private readonly object mutex = new object();
+
         StringBuilder log = new StringBuilder();
 
         private static Logger instance;
@@ -29,14 +31,25 @@ namespace QuixTracker
 
         public string FullLog
         {
-            get => log.ToString();
+            get => GetFullLog();
         }
 
         public void Log(string message)
         {
-            log.Append("\n");
-            log.Append(message);
+            lock (mutex)
+            {
+                log.Append("\n");
+                log.Append(message);
+            }
             this.OnPropertyChanged("FullLog");
+        }
+
+        private string GetFullLog()
+        {
+            lock (mutex)
+            {
+                return log.ToString();
+            }
         }
 
     }
