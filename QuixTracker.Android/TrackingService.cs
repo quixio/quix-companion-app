@@ -80,6 +80,7 @@ namespace QuixTracker.Droid
             this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
             task = new Task(DoWork);
+			this.notificationService.SendForegroundNotification("Quix Tracker", "Initializing services...");
             this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
@@ -128,6 +129,7 @@ namespace QuixTracker.Droid
 				this.quixService.Dispose();
 				OnPause();
 				await CrossGeolocator.Current.StopListeningAsync();
+				this.connectionService.ClearError();
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
 			}
 		}
@@ -279,8 +281,15 @@ namespace QuixTracker.Droid
                         data = this.locationQueue.Take(this.cancellationTokenSource.Token);
                     }
 
-                    await this.quixService.SendParameterData(this.streamId, data);
-					data = null;
+                    try
+					{
+                        await this.quixService.SendParameterData(this.streamId, data);
+                    }
+					finally
+					{
+						if (cancellationTokenSource.IsCancellationRequested)
+							data = null;
+                    }
 
 					this.connectionService.OnOutputConnectionChanged(
 						this.cancellationTokenSource.IsCancellationRequested ? ConnectionState.Draining : ConnectionState.Connected);
@@ -293,7 +302,7 @@ namespace QuixTracker.Droid
 					this.lastErrorMessage = DateTime.Now;
 				}
 
-				if (this.locationQueue.Count > 0)
+				if (this.locationQueue.Count >= 0)
 				{
 					this.currentData.LocationBufferSize = this.locationQueue.Count;
 					this.connectionService.OnDataReceived(currentData);
@@ -311,18 +320,15 @@ namespace QuixTracker.Droid
 
 		private void Geolocator_PositionChanged(object sender, PositionEventArgs e)
 		{
-			if (!this.cancellationTokenSource.IsCancellationRequested)
-			{
-                var location = e.Position;
+            var location = e.Position;
 
-                this.currentData.Speed = location.Speed;
-                this.currentData.Accuracy = location.Accuracy;
-                this.currentData.Altitude = location.Altitude;
-                this.currentData.Bearing = (float)location.Heading;
-                this.connectionService.OnDataReceived(currentData);
-                this.locationQueue.Add(GetParameterDataDTO(location));
-            }
-		}
+            this.currentData.Speed = location.Speed;
+            this.currentData.Accuracy = location.Accuracy;
+            this.currentData.Altitude = location.Altitude;
+            this.currentData.Bearing = (float)location.Heading;
+            this.connectionService.OnDataReceived(currentData);
+            this.locationQueue.Add(GetParameterDataDTO(location));
+        }
 
 
 		private async Task gforceTracking()
