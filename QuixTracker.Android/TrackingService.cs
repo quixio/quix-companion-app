@@ -311,14 +311,17 @@ namespace QuixTracker.Droid
 
 		private void Geolocator_PositionChanged(object sender, PositionEventArgs e)
 		{
-			var location = e.Position;
+			if (!this.cancellationTokenSource.IsCancellationRequested)
+			{
+                var location = e.Position;
 
-			this.currentData.Speed = location.Speed;
-			this.currentData.Accuracy = location.Accuracy;
-			this.currentData.Altitude = location.Altitude;
-			this.currentData.Bearing = (float)location.Heading;
-			this.connectionService.OnDataReceived(currentData);
-			this.locationQueue.Add(GetParameterDataDTO(location));
+                this.currentData.Speed = location.Speed;
+                this.currentData.Accuracy = location.Accuracy;
+                this.currentData.Altitude = location.Altitude;
+                this.currentData.Bearing = (float)location.Heading;
+                this.connectionService.OnDataReceived(currentData);
+                this.locationQueue.Add(GetParameterDataDTO(location));
+            }
 		}
 
 
