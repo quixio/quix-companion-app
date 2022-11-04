@@ -37,16 +37,16 @@ namespace QuixTracker.Services
 
         public void LogInformation(string message)
         {
-            Logger.Instance.Log("Logging Information: " + message);
-
+            Logger.Instance.Log("Logging Information: " + (message ?? ""));
             SendEvent("Information", message);
         }
 
         public void LogError(string message, Exception ex = null)
         {
+            if (message == null)
+                message = "";
             Logger.Instance.Log("Logging Error: " + message);
-
-            SendEvent("Error", message + "\n" +  ex?.ToString());
+            SendEvent("Error", message + "\n" +  ex?.ToString() ?? "");
         }
 
         private void SendEvent(string id, string value)
@@ -68,7 +68,6 @@ namespace QuixTracker.Services
                 Logger.Instance.Log(ex.ToString());
                 Logger.Instance.Log(ex.Message);
             }
-
         }
     }
 }

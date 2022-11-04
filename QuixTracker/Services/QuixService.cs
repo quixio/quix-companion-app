@@ -4,6 +4,7 @@ using QuixTracker.Models;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace QuixTracker.Services
@@ -63,7 +64,14 @@ namespace QuixTracker.Services
             };
 
 
-            await this.inputConnection.StartAsync();
+            try
+            {
+                await this.inputConnection.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                var e = ex;
+            }
         }
 
         public async Task StartOutputConnection()
@@ -95,8 +103,6 @@ namespace QuixTracker.Services
 
         }
 
-       
-
         public async Task CloseStream(string streamId)
         {
             await this.outputConnection.InvokeAsync("CloseStream", this.connectionService.Settings.Topic, streamId);
@@ -109,7 +115,6 @@ namespace QuixTracker.Services
             {
                 sesionName = streamId;
             }
-
 
             var streamDetails = new
             {
@@ -130,9 +135,7 @@ namespace QuixTracker.Services
 
         public async Task SendParameterData(string streamId, ParameterDataDTO data)
         {
-
             await this.outputConnection.InvokeAsync("SendParameterData", this.connectionService.Settings.Topic, streamId, data);
-
         }
 
         public async void Dispose()

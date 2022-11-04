@@ -77,16 +77,11 @@ namespace QuixTracker.Droid
 		{
 			isRunning = false;
 
-			task = new Task(DoWork);
+            this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
-			this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
-			this.notificationService.SendForegroundNotification("Quix tracking service", "Tracking in progress...");
-
-			this.cancellationTokenSource = new CancellationTokenSource();
-
-			this.loggingService.LogInformation("Tracking in progress");
-
-
+            task = new Task(DoWork);
+			this.notificationService.SendForegroundNotification("Quix Tracker", "Initializing services...");
+            this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		public override async void OnDestroy()
@@ -106,9 +101,15 @@ namespace QuixTracker.Droid
 				{
 
 				}
-				await this.quixService.CloseStream(this.streamId);
 
-
+				try
+				{
+                    await this.quixService.CloseStream(this.streamId);
+                }
+				catch (Exception ex)
+				{
+					this.loggingService.LogError($"Failed to close stream: {streamId ?? String.Empty}", ex);
+				}
 
 				isRunning = false;
 
@@ -128,6 +129,7 @@ namespace QuixTracker.Droid
 				this.quixService.Dispose();
 				OnPause();
 				await CrossGeolocator.Current.StopListeningAsync();
+				this.connectionService.ClearError();
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
 			}
 		}
@@ -151,11 +153,11 @@ namespace QuixTracker.Droid
 
 		public async void DoWork()
 		{
-			var settingsMessage = this.connectionService.Settings.CheckSettings();
+            var settingsMessage = this.connectionService.Settings.CheckSettings();
             if (settingsMessage != "")
 			{
 				this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
-				this.notificationService.SendForegroundNotification("Settings Error", settingsMessage);
+				this.notificationService.SendForegroundNotification("Quix Tracker", $"Error: {settingsMessage}");
 				Logger.Instance.Log("Settings Error: " + settingsMessage);
 			}
 
@@ -168,45 +170,68 @@ namespace QuixTracker.Droid
 			OnResume();
 
 			this.btAdapter = BluetoothAdapter.DefaultAdapter;
-			btAdapter.StartDiscovery();
-
-			this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData,  this.locationQueue, cancellationTokenSource.Token);
-			//this.garminSpeedSensorDiscovery = new GarminSpeedSensorDiscovery(this.btAdapter, Application.Context, locationQueue, cancellationTokenSource.Token);
-			this.heartRateDiscovery.Connect();
-			////this.garminSpeedSensorDiscovery.Connect();
+			if (this.btAdapter != null)
+			{
+                btAdapter.StartDiscovery();
+                this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
+                this.heartRateDiscovery.Connect();
+            }
+			else
+			{
+                this.loggingService.LogInformation("Abort heart rate tracking: bluetooth adapter not found");
+            }
 
 			try
 			{
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connecting);
+				try
+				{
+                    await RetryService.Execute(async () => await this.quixService.StartInputConnection());
+                }
+				catch (Exception ex)
+				{
+					this.loggingService.LogError("Failed to start input connection", ex);
+				}
 
-
-				await this.quixService.StartInputConnection();
-				await this.quixService.StartOutputConnection();
-
-				this.streamId = await this.quixService.CreateStream(
-					this.connectionService.Settings.DeviceId,
-					this.connectionService.Settings.Rider,
-					this.connectionService.Settings.Team,
-					this.connectionService.Settings.SessionName);
-
+                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) =>
+				{
+					this.notificationService.SendForegroundNotification("Quix Tracker", "Failed to connect to Quix");
+					this.connectionService.OnConnectionError("Failed to connect to Quix", ex);
+                });
+                
 				this.CleanErrorMessage();
 
+                this.streamId = await RetryService.Execute(async () => await this.quixService.CreateStream(
+                    this.connectionService.Settings.DeviceId,
+                    this.connectionService.Settings.Rider,
+                    this.connectionService.Settings.Team,
+                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Error: failed to create output stream", ex));
+                
+				this.CleanErrorMessage();
 
-				await this.quixService.SubscribeToEvent(this.streamId, "notification");
+                try
+				{
+                    await RetryService.Execute(async () => await this.quixService.SubscribeToEvent(this.streamId, "notification"));
+                }
+				catch (Exception ex)
+				{
+                    this.loggingService.LogError("Failed to subscribe to notifications", ex);
+                }
 
-				this.quixService.EventDataRecieved += QuixService_EventDataRecieved;
+                this.quixService.EventDataRecieved += QuixService_EventDataRecieved;
 
-
-				this.StartGeoLocationTracking();
+				await this.StartGeoLocationTracking();
 				this.queueConsumer = this.ConsumeQueue();
 
-				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				if (this.connectionService.Settings.LogGForce)
+                this.notificationService.SendForegroundNotification("Quix Tracker", "Tracking in progress...");
+                this.loggingService.LogInformation("Tracking in progress");
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                if (this.connectionService.Settings.LogGForce)
 				{
 					this.gforceTracking();
 				}
 				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
 
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connected);
 			}
@@ -249,29 +274,35 @@ namespace QuixTracker.Droid
 			ParameterDataDTO data = null;
 			while (!this.cancellationTokenSource.IsCancellationRequested || this.locationQueue.Count > 0)
 			{
-				if (data == null && !this.locationQueue.TryTake(out data))
-				{
-					data = this.locationQueue.Take(this.cancellationTokenSource.Token);
-				}
-
 				try
 				{
-					await this.quixService.SendParameterData(this.streamId, data);
-					data = null;
+                    if (data == null && !this.locationQueue.TryTake(out data))
+                    {
+                        data = this.locationQueue.Take(this.cancellationTokenSource.Token);
+                    }
+
+                    try
+					{
+                        await this.quixService.SendParameterData(this.streamId, data);
+                    }
+					finally
+					{
+						if (cancellationTokenSource.IsCancellationRequested)
+							data = null;
+                    }
 
 					this.connectionService.OnOutputConnectionChanged(
 						this.cancellationTokenSource.IsCancellationRequested ? ConnectionState.Draining : ConnectionState.Connected);
 
 					this.CleanErrorMessage();
 				}
-
 				catch (Exception ex)
 				{
-					this.connectionService.OnConnectionError(ex.Message, ex);
+					this.connectionService.OnConnectionError("Error sending data: connection error", ex);
 					this.lastErrorMessage = DateTime.Now;
 				}
 
-				if (this.locationQueue.Count > 0)
+				if (this.locationQueue.Count >= 0)
 				{
 					this.currentData.LocationBufferSize = this.locationQueue.Count;
 					this.connectionService.OnDataReceived(currentData);
@@ -289,15 +320,15 @@ namespace QuixTracker.Droid
 
 		private void Geolocator_PositionChanged(object sender, PositionEventArgs e)
 		{
-			var location = e.Position;
+            var location = e.Position;
 
-			this.currentData.Speed = location.Speed;
-			this.currentData.Accuracy = location.Accuracy;
-			this.currentData.Altitude = location.Altitude;
-			this.currentData.Bearing = (float)location.Heading;
-			this.connectionService.OnDataReceived(currentData);
-			this.locationQueue.Add(GetParameterDataDTO(location));
-		}
+            this.currentData.Speed = location.Speed;
+            this.currentData.Accuracy = location.Accuracy;
+            this.currentData.Altitude = location.Altitude;
+            this.currentData.Bearing = (float)location.Heading;
+            this.connectionService.OnDataReceived(currentData);
+            this.locationQueue.Add(GetParameterDataDTO(location));
+        }
 
 
 		private async Task gforceTracking()

@@ -167,6 +167,8 @@ namespace QuixTracker.Models
             if (string.IsNullOrWhiteSpace(this.Topic)) return "Topic is empty";
             if (string.IsNullOrWhiteSpace(this.NotificationsTopic)) return "NotificationTopic is empty";
             if (string.IsNullOrWhiteSpace(this.SubDomain)) return "Subdomain is empty";
+            if (string.IsNullOrWhiteSpace(this.Rider)) return "Rider is empty";
+            if (string.IsNullOrWhiteSpace(this.DeviceId)) return "Device id is empty";
             return "";
         }
     }
