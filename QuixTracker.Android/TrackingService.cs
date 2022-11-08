@@ -168,19 +168,25 @@ namespace QuixTracker.Droid
 
 
 			OnResume();
-
-			this.btAdapter = BluetoothAdapter.DefaultAdapter;
-			if (this.btAdapter != null)
+		
+			try
 			{
-                btAdapter.StartDiscovery();
-                this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
-                this.heartRateDiscovery.Connect();
-            }
-			else
+				this.btAdapter = BluetoothAdapter.DefaultAdapter;
+				if (this.btAdapter != null)
+				{
+					btAdapter.StartDiscovery();
+					this.heartRateDiscovery = new HeartRateDiscovery(this.btAdapter, Application.Context, this.connectionService, this.currentData, this.locationQueue, cancellationTokenSource.Token);
+					this.heartRateDiscovery.Connect();
+				}
+				else
+				{
+                    LoggingService.Instance.LogInformation("Abort heart rate tracking: bluetooth adapter not found");
+				}
+			}
+			catch(Exception ex)
 			{
-                this.loggingService.LogInformation("Abort heart rate tracking: bluetooth adapter not found");
+                this.connectionService.OnConnectionError("Bluetooth discovery failed", ex);
             }
-
 			try
 			{
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connecting);
@@ -276,20 +282,17 @@ namespace QuixTracker.Droid
 			{
 				try
 				{
-                    if (data == null && !this.locationQueue.TryTake(out data))
+                    LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
+
+                    if (!this.locationQueue.TryTake(out data))
                     {
                         data = this.locationQueue.Take(this.cancellationTokenSource.Token);
                     }
 
-                    try
-					{
-                        await this.quixService.SendParameterData(this.streamId, data);
-                    }
-					finally
-					{
-						if (cancellationTokenSource.IsCancellationRequested)
-							data = null;
-                    }
+                    LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
+
+					await this.quixService.SendParameterData(this.streamId, data);
+                    
 
 					this.connectionService.OnOutputConnectionChanged(
 						this.cancellationTokenSource.IsCancellationRequested ? ConnectionState.Draining : ConnectionState.Connected);
@@ -328,10 +331,12 @@ namespace QuixTracker.Droid
             this.currentData.Bearing = (float)location.Heading;
             this.connectionService.OnDataReceived(currentData);
             this.locationQueue.Add(GetParameterDataDTO(location));
+            LoggingService.Instance.LogTrace("Geolocator_PositionChanged");
+
         }
 
 
-		private async Task gforceTracking()
+        private async Task gforceTracking()
 		{
 			while (!this.cancellationTokenSource.IsCancellationRequested)
 			{
@@ -360,6 +365,7 @@ namespace QuixTracker.Droid
 					});
 
 					await Task.Delay(this.connectionService.Settings.Interval);
+					LoggingService.Instance.LogTrace("Gforce");
 				}
 			}
 		}
@@ -398,41 +404,6 @@ namespace QuixTracker.Droid
 								 { "Accuracy" , new[] { (double)location.Accuracy } },
 								 { "Altitude" , new[] { location.Altitude } },
 								 { "Heading" , new[] { (double)location.Heading } },
-								 { "Latitude" , new[] { location.Latitude } },
-								 { "Longitude" , new[] { location.Longitude } },
-								 { "Speed" , new[] { (double)location.Speed * 3.6} },
-								 { "BatteryLevel" , new[] { Battery.ChargeLevel } }
-
-							 },
-				StringValues = new Dictionary<string, string[]>
-							 {
-								 { "BatteryState" , new[] { Battery.State.ToString() } },
-								 { "BatteryPowerSource" , new[] { Battery.PowerSource.ToString() } },
-								 { "EnergySaverStatus" , new[] { Battery.EnergySaverStatus.ToString() } },
-							 },
-				TagValues = new Dictionary<string, string[]>()
-							{
-								{"version", new string[]{ this.packageInfo.VersionName } },
-								{"rider", new string[]{ this.connectionService.Settings.Rider} },
-								{"team", new string[]{ this.connectionService.Settings.Team} },
-							}
-
-			};
-
-		}
-
-		public ParameterDataDTO GetParameterDataDTO(Android.Locations.Location location)
-		{
-			this.lastTimeStamp = ((long)location.Time) * 1000000;
-
-			return new ParameterDataDTO
-			{
-				Timestamps = new[] { lastTimeStamp },
-				NumericValues = new Dictionary<string, double[]>
-							 {
-								 { "Accuracy" , new[] { (double)location.Accuracy } },
-								 { "Altitude" , new[] { location.Altitude } },
-								 { "Heading" , new[] { (double)location.Bearing } },
 								 { "Latitude" , new[] { location.Latitude } },
 								 { "Longitude" , new[] { location.Longitude } },
 								 { "Speed" , new[] { (double)location.Speed * 3.6} },

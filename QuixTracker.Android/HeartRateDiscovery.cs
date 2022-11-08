@@ -49,25 +49,11 @@ namespace QuixTracker.Droid
                         var heartRateDevice = devices.FirstOrDefault(a => a.Name == "808S 0008720"); // Javi HR
                         //var heartRateDevice = devices.FirstOrDefault(a => a.Name == "808S 0026070"); // Clara HR
 
-                        this.locationQueue.Add(new ParameterDataDTO
-                        {
-                            Timestamps = new long[] { (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000 },
-                            StringValues = new Dictionary<string, string[]>
-                                {
-                                    { "LogInfo", new string[] {"Devices loaded" } }
-                                }
-                        });
+                        LoggingService.Instance.LogInformation("Devices loaded");
 
                         if (heartRateDevice != null)
                         {
-                            this.locationQueue.Add(new ParameterDataDTO
-                            {
-                                Timestamps = new long[] { (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000 },
-                                StringValues = new Dictionary<string, string[]>
-                                {
-                                    { "LogInfo", new string[] {"Device founded" } }
-                                }
-                            });
+                            LoggingService.Instance.LogInformation("Device founded");
 
 
                             if (!connecting)
@@ -82,15 +68,8 @@ namespace QuixTracker.Droid
                                 {
                                     this.connecting = true;
 
+                                    LoggingService.Instance.LogInformation("Device connected");
 
-                                    this.locationQueue.Add(new ParameterDataDTO
-                                    {
-                                        Timestamps = new long[] { (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000 },
-                                        StringValues = new Dictionary<string, string[]>
-                                {
-                                    { "LogInfo", new string[] {"Device connected" } }
-                                }
-                                    });
                                     break;
                                 }
                                
@@ -99,14 +78,7 @@ namespace QuixTracker.Droid
                     }
                     catch(Exception ex)
                     {
-                        this.locationQueue.Add(new ParameterDataDTO
-                        {
-                            Timestamps = new long[] { (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000 },
-                            StringValues = new Dictionary<string, string[]>
-                                {
-                                    { "LogInfo", new string[] {ex.ToString() } }
-                                }
-                        });
+                        LoggingService.Instance.LogError("Bluetooth discovery failed.", ex);
                     }
                     finally
                     {

@@ -26,7 +26,7 @@ namespace QuixTracker.Models
             this.DeviceId = Preferences.Get("DeviceId", "My Device");
             this.Rider = Preferences.Get("Rider", "My Name");
             this.Team = Preferences.Get("Team", "My Team");
-            this.Interval = Preferences.Get("Interval", 250);
+            this.Interval = Preferences.Get("Interval", 1000);
             this.LogGForce = Preferences.Get("LogGForce", true);
 
             this.WorkspaceId = Preferences.Get("Workspace", "");

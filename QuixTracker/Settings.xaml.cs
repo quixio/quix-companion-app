@@ -157,7 +157,10 @@ namespace QuixTracker
             {
                 interval = value;
                 this.OnPropertyChanged();
-                connectionService.Settings.Interval = int.Parse(value);
+                if(int.TryParse(value, out var intVal))
+                {
+                    connectionService.Settings.Interval = intVal;
+                };
             }
         }
 
@@ -198,7 +201,7 @@ namespace QuixTracker
             BindingContext = this;
         }
 
-        private async void Button_OnClicked(object sender, EventArgs e)
+        private async void ScanQrCodeOnClicked(object sender, EventArgs e)
         {
             ZXingScannerPage scanPage = new ZXingScannerPage();
             scanPage.OnScanResult += (result) =>
@@ -231,13 +234,17 @@ namespace QuixTracker
                 if (response.Result.IsSuccessStatusCode)
                 {
                     string content = response.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                    var o = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
+                    var qrCodePayload = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
 
-                    Token = TryGetDictionaryValue("bearerToken", o);
-                    Topic = TryGetDictionaryValue("topic", o);
-                    Workspace = TryGetDictionaryValue("workspaceId", o);
-                    NotificationsTopic = TryGetDictionaryValue("notificationsTopic", o);
-                    Subdomain = TryGetDictionaryValue("subdomain", o);
+                    Token = TryGetDictionaryValue("bearerToken", qrCodePayload);
+                    Topic = TryGetDictionaryValue("topic", qrCodePayload);
+                    Workspace = TryGetDictionaryValue("workspaceId", qrCodePayload);
+                    NotificationsTopic = TryGetDictionaryValue("notificationsTopic", qrCodePayload);
+                    Subdomain = TryGetDictionaryValue("subdomain", qrCodePayload);
+                    DeviceId = TryGetDictionaryValue("device", qrCodePayload);
+                    Rider = TryGetDictionaryValue("rider", qrCodePayload);
+                    Team = TryGetDictionaryValue("team", qrCodePayload);
+
 
                     logger.Log("Decoded JSON from QR Share:");
                     logger.Log("Token=" + Token);

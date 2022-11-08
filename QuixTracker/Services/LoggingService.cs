@@ -35,6 +35,11 @@ namespace QuixTracker.Services
             this.streamId = $"{settings.Rider}-{settings.DeviceId}-{Guid.NewGuid().ToString().Substring(0, 6)}";
         }
 
+        public void LogTrace(string message)
+        {
+            Logger.Instance.Log("Logging Trace: " + (message ?? ""));
+        }
+
         public void LogInformation(string message)
         {
             Logger.Instance.Log("Logging Information: " + (message ?? ""));
