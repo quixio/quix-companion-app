@@ -17,10 +17,11 @@ using Plugin.Geolocator;
 using Android.Content.PM;
 using QuixTracker.Models;
 using Android.Bluetooth;
+using Plugin.Permissions;
+using Xamarin.Forms.PlatformConfiguration;
 
 namespace QuixTracker.Droid
 {
-
     [Service(ForegroundServiceType = ForegroundService.TypeLocation, Exported = true)]
 	public class TrackingService : Service, ISensorEventListener
 	{
@@ -165,13 +166,11 @@ namespace QuixTracker.Droid
 
 			this.gyroSensor = this.sensorManager.GetDefaultSensor(SensorType.Accelerometer);
 			this.tempSensor = this.sensorManager.GetDefaultSensor(SensorType.AmbientTemperature);
+            OnResume();
+            try
+            {
 
-
-			OnResume();
-		
-			try
-			{
-				this.btAdapter = BluetoothAdapter.DefaultAdapter;
+                this.btAdapter = BluetoothAdapter.DefaultAdapter;
 				if (this.btAdapter != null)
 				{
 					btAdapter.StartDiscovery();
@@ -185,7 +184,7 @@ namespace QuixTracker.Droid
 			}
 			catch(Exception ex)
 			{
-                this.connectionService.OnConnectionError("Bluetooth discovery failed", ex);
+                this.loggingService.LogError("Bluetooth discovery failed", ex);
             }
 			try
 			{
