@@ -300,8 +300,14 @@ namespace QuixTracker.Droid
 				}
 				catch (Exception ex)
 				{
-					this.connectionService.OnConnectionError("Error sending data: connection error", ex);
-					this.lastErrorMessage = DateTime.Now;
+					if (!this.cancellationTokenSource.IsCancellationRequested)
+					{
+                        this.connectionService.OnConnectionError("Error sending data: connection error", ex);
+                        this.lastErrorMessage = DateTime.Now;
+                    } else
+					{
+						this.loggingService.LogInformation("Abort sending data: cancellation requested");
+					}
 				}
 
 				if (this.locationQueue.Count >= 0)
