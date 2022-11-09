@@ -298,17 +298,15 @@ namespace QuixTracker.Droid
 
 					this.CleanErrorMessage();
 				}
+				catch (System.OperationCanceledException)
+				{
+                    this.loggingService.LogInformation("Abort sending data: cancellation requested");
+                }
 				catch (Exception ex)
 				{
-					if (!this.cancellationTokenSource.IsCancellationRequested)
-					{
-                        this.connectionService.OnConnectionError("Error sending data: connection error", ex);
-                        this.lastErrorMessage = DateTime.Now;
-                    } else
-					{
-						this.loggingService.LogInformation("Abort sending data: cancellation requested");
-					}
-				}
+                    this.connectionService.OnConnectionError("Error sending data: connection error", ex);
+                    this.lastErrorMessage = DateTime.Now;
+                }
 
 				if (this.locationQueue.Count >= 0)
 				{
