@@ -29,6 +29,7 @@
                     <Label Text="Notifications Topic"></Label>
                     <Entry Text="{Binding Path=NotificationsTopic}" HorizontalOptions="FillAndExpand" />
 
+                    
                     <Label Text="DeviceId: "></Label>
                     <Entry Text="{Binding DeviceId}" HorizontalOptions="FillAndExpand" />
 
@@ -37,6 +38,11 @@
 
                     <Label Text="Team: "></Label>
                     <Entry Text="{Binding Team}" HorizontalOptions="FillAndExpand" />
+
+                     <Label Text="Session name (optional):"></Label>
+                    <Entry Text="{Binding SessionName}" HorizontalOptions="FillAndExpand" />
+
+
 
                     <Label Text="Log G force: "></Label>
                     <CheckBox IsChecked="{Binding LogGForce}"
