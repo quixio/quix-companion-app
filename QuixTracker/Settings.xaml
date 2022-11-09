@@ -11,43 +11,47 @@
 
     </ContentPage.Resources>
     <ContentPage.Content>
-        <StackLayout>
-            
-            <Button Text="Scan QR Code" Clicked="Button_OnClicked"></Button>
+        <ScrollView x:Name="MainScroll" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+            <StackLayout >
+                <StackLayout>
 
-            <Label Text="Workspace"></Label>
-            <Entry Text="{Binding Path=Workspace}" HorizontalOptions="FillAndExpand" />
+                    <Button Text="Scan QR Code" Clicked="ScanQrCodeOnClicked"></Button>
 
-            <Label Text="Token"></Label>
-            <Entry Text="{Binding Path=Token}" HorizontalOptions="FillAndExpand" />
+                    <Label Text="Workspace"></Label>
+                    <Entry Text="{Binding Path=Workspace}" HorizontalOptions="FillAndExpand" />
 
-            <Label Text="Topic"></Label>
-            <Entry Text="{Binding Path=Topic}" HorizontalOptions="FillAndExpand" />
+                    <Label Text="Token"></Label>
+                    <Entry Text="{Binding Path=Token}" HorizontalOptions="FillAndExpand" />
 
-            <Label Text="Notifications Topic"></Label>
-            <Entry Text="{Binding Path=NotificationsTopic}" HorizontalOptions="FillAndExpand" />
-            
-            <Label Text="DeviceId: "></Label>
-            <Entry Text="{Binding DeviceId}" HorizontalOptions="FillAndExpand" />
-            
-            <Label Text="Rider: "></Label>
-            <Entry Text="{Binding Rider}" HorizontalOptions="FillAndExpand" />
-            
-            <Label Text="Team: "></Label>
-            <Entry Text="{Binding Team}" HorizontalOptions="FillAndExpand" />
-            
-            <Label Text="Log G force: "></Label>
-            <CheckBox IsChecked="{Binding LogGForce}"
+                    <Label Text="Topic"></Label>
+                    <Entry Text="{Binding Path=Topic}" HorizontalOptions="FillAndExpand" />
+
+                    <Label Text="Notifications Topic"></Label>
+                    <Entry Text="{Binding Path=NotificationsTopic}" HorizontalOptions="FillAndExpand" />
+
+                    <Label Text="DeviceId: "></Label>
+                    <Entry Text="{Binding DeviceId}" HorizontalOptions="FillAndExpand" />
+
+                    <Label Text="Rider: "></Label>
+                    <Entry Text="{Binding Rider}" HorizontalOptions="FillAndExpand" />
+
+                    <Label Text="Team: "></Label>
+                    <Entry Text="{Binding Team}" HorizontalOptions="FillAndExpand" />
+
+                    <Label Text="Log G force: "></Label>
+                    <CheckBox IsChecked="{Binding LogGForce}"
                       IsEnabled="{Binding Connected, Converter={StaticResource NegativeConverter}}"
                       HorizontalOptions="FillAndExpand" />
-            
-            <Label Text="Tracking interval [ms]: "></Label>
-            <Entry Text="{Binding Interval}" HorizontalOptions="FillAndExpand"
-                   Keyboard="Numeric" />
 
-            <Label Text="Subdomain"></Label>
-            <Entry Text="{Binding Subdomain}" HorizontalOptions="FillAndExpand" />
+                    <Label Text="Tracking interval [ms]: "></Label>
+                    <Entry Text="{Binding Interval}" HorizontalOptions="FillAndExpand"
+                   Keyboard="Numeric"   />
 
-        </StackLayout>
+                    <Label Text="Subdomain"></Label>
+                    <Entry Text="{Binding Subdomain}" HorizontalOptions="FillAndExpand" />
+
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
     </ContentPage.Content>
 </ContentPage>

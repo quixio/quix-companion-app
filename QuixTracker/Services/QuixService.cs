@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using QuixTracker.Models;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -135,7 +136,12 @@ namespace QuixTracker.Services
 
         public async Task SendParameterData(string streamId, ParameterDataDTO data)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             await this.outputConnection.InvokeAsync("SendParameterData", this.connectionService.Settings.Topic, streamId, data);
+
+            LoggingService.Instance.LogTrace("SEND in " + stopwatch.ElapsedMilliseconds);
+
         }
 
         public async void Dispose()

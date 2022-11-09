@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace QuixTracker
         StringBuilder log = new StringBuilder();
 
         private static Logger instance;
+        private static readonly int LFLength = Environment.NewLine.Length;
 
         public Logger()
         {
@@ -50,7 +52,7 @@ namespace QuixTracker
                     this.lengths.RemoveFirst();
                 }
                 log.AppendLine(message);
-                this.lengths.AddLast(message.Length);
+                this.lengths.AddLast(message.Length + LFLength);
                 count++;
             }
             this.OnPropertyChanged("FullLog");
