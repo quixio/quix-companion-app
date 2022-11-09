@@ -22,7 +22,7 @@ namespace QuixTracker.Models
 
         public Settings()
         {
-            this.SessionName = Preferences.Get("SessionName", $"Session on {DateTime.Now:yyyy-M-dd h:mm:ss}");
+            this.SessionName = Preferences.Get("SessionName", $"");
             this.DeviceId = Preferences.Get("DeviceId", "My Device");
             this.Rider = Preferences.Get("Rider", "My Name");
             this.Team = Preferences.Get("Team", "My Team");
