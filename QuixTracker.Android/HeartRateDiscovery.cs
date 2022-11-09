@@ -53,7 +53,7 @@ namespace QuixTracker.Droid
 
                         if (heartRateDevice != null)
                         {
-                            LoggingService.Instance.LogInformation("Device founded");
+                            LoggingService.Instance.LogInformation("Device found");
 
 
                             if (!connecting)
