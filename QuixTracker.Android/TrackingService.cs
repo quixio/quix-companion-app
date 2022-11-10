@@ -2,21 +2,23 @@ using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
+using Android.Content.PM;
+using Android.Hardware;
+using Android.Bluetooth;
+
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using System.Threading;
-using Android.Hardware;
 using System.Collections.Concurrent;
 using QuixTracker.Services;
 using System.Text.Json;
 using Plugin.Geolocator.Abstractions;
 using Plugin.Geolocator;
-using Android.Content.PM;
 using QuixTracker.Models;
-using Android.Bluetooth;
 using Plugin.Permissions;
 using Xamarin.Forms.PlatformConfiguration;
 
@@ -283,7 +285,7 @@ namespace QuixTracker.Droid
 				{
                     LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
 
-                    if (!this.locationQueue.TryTake(out data))
+                    if (data == null && !this.locationQueue.TryTake(out data))
                     {
                         data = this.locationQueue.Take(this.cancellationTokenSource.Token);
                     }
@@ -291,7 +293,7 @@ namespace QuixTracker.Droid
                     LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
 
 					await this.quixService.SendParameterData(this.streamId, data);
-                    
+					data = null;
 
 					this.connectionService.OnOutputConnectionChanged(
 						this.cancellationTokenSource.IsCancellationRequested ? ConnectionState.Draining : ConnectionState.Connected);
@@ -306,6 +308,7 @@ namespace QuixTracker.Droid
 				{
                     this.connectionService.OnConnectionError("Error sending data: connection error", ex);
                     this.lastErrorMessage = DateTime.Now;
+					await Task.Delay(500);
                 }
 
 				if (this.locationQueue.Count >= 0)
@@ -326,6 +329,8 @@ namespace QuixTracker.Droid
 
 		private void Geolocator_PositionChanged(object sender, PositionEventArgs e)
 		{
+			if (this.cancellationTokenSource.IsCancellationRequested) return;
+
             var location = e.Position;
 
             this.currentData.Speed = location.Speed;
@@ -334,6 +339,10 @@ namespace QuixTracker.Droid
             this.currentData.Bearing = (float)location.Heading;
             this.connectionService.OnDataReceived(currentData);
             this.locationQueue.Add(GetParameterDataDTO(location));
+
+            this.currentData.LocationBufferSize = this.locationQueue.Count;
+
+
             LoggingService.Instance.LogTrace("Geolocator_PositionChanged");
 
         }
@@ -367,7 +376,9 @@ namespace QuixTracker.Droid
 							}
 					});
 
-					await Task.Delay(this.connectionService.Settings.Interval);
+                    this.currentData.LocationBufferSize = this.locationQueue.Count;
+
+                    await Task.Delay(this.connectionService.Settings.Interval);
 					LoggingService.Instance.LogTrace("Gforce");
 				}
 			}
