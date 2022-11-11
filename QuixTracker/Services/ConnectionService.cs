@@ -37,18 +37,10 @@ namespace QuixTracker.Services
             this.Settings = new Models.Settings();
         }
 
-
-
-        public void Test()
-        {
-
-        }
-
         public void OnDataReceived(CurrentData data)
         {
             DataReceived?.Invoke(this, data);
         }
-
 
         public void OnInputConnectionChanged(ConnectionState newState)
         {
@@ -57,6 +49,9 @@ namespace QuixTracker.Services
 
         public void OnOutputConnectionChanged(ConnectionState newState)
         {
+            LoggingService.Instance.LogInformation(
+                $"Output connection changed from {this.OutputConnectionState} to {newState}");
+
             OutputConnectionChanged?.Invoke(this, newState);
             OutputConnectionState = newState;
         }

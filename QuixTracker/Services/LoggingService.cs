@@ -40,12 +40,12 @@ namespace QuixTracker.Services
 
         public void LogTrace(string message)
         {
-            Logger.Instance.Log("Logging Trace: " + (message ?? ""));
+            Logger.Instance.Log($"Logging Trace [{DateTime.Now.ToShortTimeString()}]: {(message ?? "")}");
         }
 
         public void LogInformation(string message)
         {
-            Logger.Instance.Log("Logging Information: " + (message ?? ""));
+            Logger.Instance.Log($"Logging Information [{DateTime.Now.ToShortTimeString()}]: {(message ?? "")}");
             SendEvent("Information", message);
         }
 
@@ -53,7 +53,7 @@ namespace QuixTracker.Services
         {
             if (message == null)
                 message = "";
-            Logger.Instance.Log("Logging Error: " + message);
+            Logger.Instance.Log($"Logging Error [{DateTime.Now.ToShortTimeString()}]: " + message);
             SendEvent("Error", message + "\n" + ex?.ToString() ?? "");
         }
 

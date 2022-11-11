@@ -35,14 +35,15 @@ namespace QuixTracker.Droid
 		private bool isRunning;
 		private Task task;
 		private NotificationService notificationService;
-		private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cancellationTokenSource;
 		private HeartRateDiscovery heartRateDiscovery;
 		private SensorManager sensorManager;
 		private ConcurrentDictionary<long, Tuple<double, double, double>> gforces = new ConcurrentDictionary<long, Tuple<double, double, double>>();
 		private ConcurrentDictionary<long, double> temperatures = new ConcurrentDictionary<long, double>();
 		private ConnectionService connectionService;
-		private QuixService quixService;
-		private DateTime lastErrorMessage = DateTime.Now;
+		private QuixReaderService readerService;
+		private QuixWriterService writerService;
+        private DateTime lastErrorMessage = DateTime.Now;
 		private Sensor gyroSensor;
 		private Sensor tempSensor;
 		private PackageInfo packageInfo;
@@ -54,7 +55,8 @@ namespace QuixTracker.Droid
         public TrackingService()
 		{
 			this.connectionService = ConnectionService.Instance;
-			this.quixService = new QuixService(this.connectionService);
+			this.readerService = new QuixReaderService(this.connectionService);
+			this.writerService = new QuixWriterService(this.connectionService);
 
 			var context = Android.App.Application.Context;
 
@@ -73,25 +75,30 @@ namespace QuixTracker.Droid
 
 		public void Start()
 		{
-			Logger.Instance.Log("Starting tracking service");
+			this.loggingService.LogInformation("Starting tracking service");
 		}
 
 		public override void OnCreate()
 		{
-			isRunning = false;
+            this.loggingService.LogInformation("OnCreate");
+
+            isRunning = false;
 
             this.notificationService = new NotificationService(GetSystemService(Context.NotificationService) as NotificationManager, this);
 
-            task = new Task(DoWork);
+            this.task = new Task(DoWork);
 			this.notificationService.SendForegroundNotification("Quix Tracker", "Initializing services...");
             this.cancellationTokenSource = new CancellationTokenSource();
 		}
 
 		public override async void OnDestroy()
 		{
-			try
-			{
+            this.loggingService.LogInformation("OnDestroy");
+
+            try
+            {
 				this.cancellationTokenSource.Cancel();
+				this.locationQueue.CompleteAdding();
 
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Draining);
 
@@ -107,7 +114,7 @@ namespace QuixTracker.Droid
 
 				try
 				{
-                    await this.quixService.CloseStream(this.streamId);
+                    await this.writerService.CloseStream(this.streamId);
                 }
 				catch (Exception ex)
 				{
@@ -129,8 +136,13 @@ namespace QuixTracker.Droid
 			finally
 			{
 				StopSelf();
-				this.quixService.Dispose();
-				OnPause();
+				await this.writerService.StopAsync();
+				await this.writerService.DisposeAsync();
+
+                await this.readerService.StopAsync();
+                await this.readerService.DisposeAsync();
+
+                OnPause();
 				await CrossGeolocator.Current.StopListeningAsync();
 				this.connectionService.ClearError();
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
@@ -156,6 +168,8 @@ namespace QuixTracker.Droid
 
 		public async void DoWork()
 		{
+            this.loggingService.LogInformation("DoWork");
+
             var settingsMessage = this.connectionService.Settings.CheckSettings();
             if (settingsMessage != "")
 			{
@@ -193,14 +207,14 @@ namespace QuixTracker.Droid
 				this.connectionService.OnOutputConnectionChanged(ConnectionState.Connecting);
 				try
 				{
-                    await RetryService.Execute(async () => await this.quixService.StartInputConnection());
+                    await RetryService.Execute(async () => await this.readerService.StartConnection());
                 }
 				catch (Exception ex)
 				{
 					this.loggingService.LogError("Failed to start input connection", ex);
 				}
 
-                await RetryService.Execute(async () => await this.quixService.StartOutputConnection(), -1, 1000, (ex) =>
+                await RetryService.Execute(async () => await this.writerService.StartConnection(), -1, 1000, (ex) =>
 				{
 					this.notificationService.SendForegroundNotification("Quix Tracker", "Failed to connect to Quix");
 					this.connectionService.OnConnectionError("Failed to connect to Quix", ex);
@@ -208,7 +222,7 @@ namespace QuixTracker.Droid
                 
 				this.CleanErrorMessage();
 
-                this.streamId = await RetryService.Execute(async () => await this.quixService.CreateStream(
+                this.streamId = await RetryService.Execute(async () => await this.writerService.CreateStream(
                     this.connectionService.Settings.DeviceId,
                     this.connectionService.Settings.Rider,
                     this.connectionService.Settings.Team,
@@ -218,14 +232,14 @@ namespace QuixTracker.Droid
 
                 try
 				{
-                    await RetryService.Execute(async () => await this.quixService.SubscribeToEvent(this.streamId, "notification"));
+                    await RetryService.Execute(async () => await this.readerService.SubscribeToEvent(this.streamId, "notification"));
                 }
 				catch (Exception ex)
 				{
                     this.loggingService.LogError("Failed to subscribe to notifications", ex);
                 }
 
-                this.quixService.EventDataRecieved += QuixService_EventDataRecieved;
+                this.readerService.EventDataRecieved += QuixService_EventDataRecieved;
 
 				await this.StartGeoLocationTracking();
 				this.queueConsumer = this.ConsumeQueue();
@@ -233,7 +247,7 @@ namespace QuixTracker.Droid
                 this.notificationService.SendForegroundNotification("Quix Tracker", "Tracking in progress...");
                 this.loggingService.LogInformation("Tracking in progress");
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 if (this.connectionService.Settings.LogGForce)
 				{
 					this.gforceTracking();
@@ -249,8 +263,12 @@ namespace QuixTracker.Droid
 				this.lastErrorMessage = DateTime.Now;
 				this.connectionService.OnInputConnectionChanged(ConnectionState.Disconnected);
 				StopSelf();
-				this.quixService.Dispose();
-				OnPause();
+                await this.writerService.StopAsync();
+                await this.writerService.DisposeAsync();
+
+                await this.readerService.StopAsync();
+                await this.readerService.DisposeAsync();
+                OnPause();
 				await CrossGeolocator.Current.StopListeningAsync();
 			}
 		}
@@ -292,7 +310,7 @@ namespace QuixTracker.Droid
 
                     LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
 
-					await this.quixService.SendParameterData(this.streamId, data);
+					await this.writerService.SendParameterData(this.streamId, data);
 					data = null;
 
 					this.connectionService.OnOutputConnectionChanged(
