@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using QuixTracker.Models;
 
 namespace QuixTracker.Services
 {
-    public class LoggingService 
+    public class LoggingService
     {
+        private BlockingCollection<EventDataDTO> queue = new BlockingCollection<EventDataDTO>(1000);
         private static LoggingService instance;
         public static LoggingService Instance
         {
@@ -51,28 +54,62 @@ namespace QuixTracker.Services
             if (message == null)
                 message = "";
             Logger.Instance.Log("Logging Error: " + message);
-            SendEvent("Error", message + "\n" +  ex?.ToString() ?? "");
+            SendEvent("Error", message + "\n" + ex?.ToString() ?? "");
+        }
+
+        private async Task ConsumeQueue()
+        {
+            while (!this.queue.IsAddingCompleted)
+            {
+                if (!this.queue.TryTake(out var item))
+                {
+                    item = this.queue.Take();
+                }
+
+                try
+                {
+                    await this.client.PostAsync($"topics/quix-tracker-logs/streams/{this.streamId}/events/data", new StringContent(JsonSerializer.Serialize(new List<EventDataDTO> { item }), Encoding.UTF8, "application/json"));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Log("Error sending log event to Quix:");
+                    Logger.Instance.Log(ex.ToString());
+                    Logger.Instance.Log(ex.Message);
+                    await Task.Delay(500);
+                }
+            }
+
         }
 
         private void SendEvent(string id, string value)
         {
+
+            var evt = new EventDataDTO
+            {
+                Id = id,
+                Timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000,
+                Value = value
+            };
+
             try
             {
-                var evt = new EventDataDTO
+                if (!this.queue.TryAdd(evt))
                 {
-                    Id = id,
-                    Timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000,
-                    Value = value
-                };
+                    Logger.Instance.Log("Logging queue is full.");
+                }
 
                 this.client.PostAsync($"topics/quix-tracker-logs/streams/{this.streamId}/events/data", new StringContent(JsonSerializer.Serialize(new List<EventDataDTO> { evt }), Encoding.UTF8, "application/json"));
             }
-            catch(Exception ex)
+            catch (InvalidOperationException)
             {
-                Logger.Instance.Log("Error sending log event to Quix:");
-                Logger.Instance.Log(ex.ToString());
-                Logger.Instance.Log(ex.Message);
+                Logger.Instance.Log("Logging service is being disposed.");
             }
+
+        }
+
+        public void Stop()
+        {
+            this.queue.CompleteAdding();
         }
     }
 }
