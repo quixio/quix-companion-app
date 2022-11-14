@@ -20,7 +20,7 @@ namespace QuixTracker.Views
         private bool reconnecting;
         private string errorMessage;
         private ConnectionService connectionService;
-        private QuixService quixServiceInstance;
+        private QuixWriterService quixServiceInstance;
         private CurrentData currentData;
         private string speed;
         private string accuracy;
