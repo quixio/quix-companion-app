@@ -22,7 +22,6 @@
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <ReleaseVersion>1.0</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -115,7 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuixTracker\QuixTracker.csproj">
-      <Project>{2C19B8A1-B905-41F9-9012-473305C9033D}</Project>
+      <Project>{FA17257F-B652-4335-AD20-76131423245E}</Project>
       <Name>QuixTracker</Name>
     </ProjectReference>
   </ItemGroup>
