@@ -32,6 +32,8 @@ namespace QuixTracker.Views
         private bool draining;
         private bool disconnected = true;
         private string heartRate;
+        private FirmwareUpdate newFirmwareAvailable;
+        private string firmware;
 
         public bool Connected
         {
@@ -93,6 +95,15 @@ namespace QuixTracker.Views
             }
         }
 
+        public FirmwareUpdate NewFirmwareAvailable
+        {
+            get { return newFirmwareAvailable; }
+            set
+            {
+                newFirmwareAvailable = value;
+                this.OnPropertyChanged();
+            }
+        }
 
         public string ErrorMessage
         {
@@ -173,6 +184,16 @@ namespace QuixTracker.Views
             }
         }
 
+        public string Firmware
+        {
+            get { return firmware; }
+            set
+            {
+                firmware = value;
+                this.OnPropertyChanged();
+            }
+        }
+
         public Dashboard()
         {
 
@@ -186,9 +207,15 @@ namespace QuixTracker.Views
             this.connectionService.ConnectionError += ConnectionService_ConnectionError;
 
             this.connectionService.DataReceived += ConnectionService_DataReceived;
+            this.connectionService.FirmwareUpdateReceived += ConnectionService_FirmwareUpdateReceived;
 
             this.ConnectionService_OutputConnectionChanged(this, this.connectionService.OutputConnectionState);
+            this.Firmware = this.connectionService.Settings.Firmware;
+        }
 
+        private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
+        {
+            this.NewFirmwareAvailable = e;
         }
 
         private void ConnectionService_DataReceived(object sender, CurrentData e)
@@ -265,6 +292,26 @@ namespace QuixTracker.Views
         private void OnStopClicked(object sender, EventArgs e)
         {
             DependencyService.Get<IStartService>().StopForegroundServiceCompat();
+        }
+
+        void Button_Clicked(System.Object sender, System.EventArgs e)
+        {
+        }
+
+        async void Update_Clicked(System.Object sender, System.EventArgs e)
+        {
+            this.connectionService.Settings.Firmware = this.NewFirmwareAvailable.FirmwareId;
+            this.Firmware = this.NewFirmwareAvailable.FirmwareId;
+            this.NewFirmwareAvailable = null;
+
+            var timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000;
+
+            var payload = new EventDataDTO {
+                Id = "FirmwareUpdated",
+                Timestamp = timestamp,
+                Value = "Success"
+            };
+            await this.quixServiceInstance.SendEventData("Somestuff", payload);
         }
     }
 }

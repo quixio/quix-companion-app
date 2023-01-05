@@ -29,7 +29,7 @@ namespace QuixTracker
         private string notificationsTopic;
         private string bluetoothDevice;
         private List<string> bluetoothDevices;
-
+        private string firmware;
         private readonly HttpClient client;
 
         #region props
@@ -150,6 +150,17 @@ namespace QuixTracker
             }
         }
 
+        public string Firmware
+        {
+            get { return firmware; }
+            set
+            {
+                firmware = value;
+                this.OnPropertyChanged();
+                connectionService.Settings.Team = value;
+            }
+        }
+
         public string Interval
         {
             get { return interval; }
@@ -221,9 +232,9 @@ namespace QuixTracker
             await Navigation.PushAsync(scanPage);
         }
 
-        private string TryGetDictionaryValue(string key, Dictionary<string, string> dict)
+        private string TryGetDictionaryValue(string key, Dictionary<string, string> dict, string defaultValue)
         {
-            return dict.TryGetValue(key, out var value) ? value : "";
+            return dict.TryGetValue(key, out var value) ? value : defaultValue;
         }
         
         private void GetTokenFromUrl(string url)
@@ -236,14 +247,14 @@ namespace QuixTracker
                     string content = response.Result.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                     var qrCodePayload = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
 
-                    Token = TryGetDictionaryValue("bearerToken", qrCodePayload);
-                    Topic = TryGetDictionaryValue("topic", qrCodePayload);
-                    Workspace = TryGetDictionaryValue("workspaceId", qrCodePayload);
-                    NotificationsTopic = TryGetDictionaryValue("notificationsTopic", qrCodePayload);
-                    Subdomain = TryGetDictionaryValue("subdomain", qrCodePayload);
-                    DeviceId = TryGetDictionaryValue("device", qrCodePayload);
-                    Rider = TryGetDictionaryValue("rider", qrCodePayload);
-                    Team = TryGetDictionaryValue("team", qrCodePayload);
+                    Token = TryGetDictionaryValue("bearerToken", qrCodePayload, "");
+                    Topic = TryGetDictionaryValue("topic", qrCodePayload, Topic);
+                    Workspace = TryGetDictionaryValue("workspaceId", qrCodePayload, "");
+                    NotificationsTopic = TryGetDictionaryValue("notificationsTopic", qrCodePayload, NotificationsTopic);
+                    Subdomain = TryGetDictionaryValue("subdomain", qrCodePayload, Subdomain);
+                    DeviceId = TryGetDictionaryValue("device", qrCodePayload, DeviceId);
+                    Rider = TryGetDictionaryValue("rider", qrCodePayload, Rider);
+                    Team = TryGetDictionaryValue("team", qrCodePayload, Team);
 
 
                     logger.Log("Decoded JSON from QR Share:");

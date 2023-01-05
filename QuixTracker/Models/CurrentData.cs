@@ -13,4 +13,9 @@
 
         public string Message { get; set; }
     }
+
+    public class FirmwareUpdate : NotificationDTO
+    {
+        public string FirmwareId { get; set; }
+    }
 }

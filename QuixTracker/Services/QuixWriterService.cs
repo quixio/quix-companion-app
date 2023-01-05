@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace QuixTracker.Services
 {
+    public class FirmwareService
+    {
+        public FirmwareService()
+        {
+
+        }
+    }
+
     public class QuixWriterService : QuixSignalRService
     {
         private readonly ConnectionService connectionService;
@@ -53,6 +61,16 @@ namespace QuixTracker.Services
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             await this.Connection.InvokeAsync("SendParameterData", this.connectionService.Settings.Topic, streamId, data);
+
+            LoggingService.Instance.LogTrace("SEND in " + stopwatch.ElapsedMilliseconds);
+
+        }
+
+        public async Task SendEventData(string streamId, EventDataDTO data)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            await this.Connection.InvokeAsync("SendEventData", this.connectionService.Settings.Topic, streamId, data);
 
             LoggingService.Instance.LogTrace("SEND in " + stopwatch.ElapsedMilliseconds);
 

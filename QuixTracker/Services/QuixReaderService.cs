@@ -21,7 +21,7 @@ namespace QuixTracker.Services
 
         public async Task SubscribeToEvent(string streamId, string eventId)
         {
-            await this.Connection.InvokeAsync("SubscribeToEvent", connectionService.Settings.NotificationsTopic, streamId + "-notifications", eventId);
+            await this.Connection.InvokeAsync("SubscribeToEvent", connectionService.Settings.NotificationsTopic, "*", eventId);
         }
 
         public override async Task StartConnection()
