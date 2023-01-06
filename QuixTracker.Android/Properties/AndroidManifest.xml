@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="3.0" package="com.quix.quixtracker" android:installLocation="auto" android:versionName="3.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="3" package="com.quix.quixtracker" android:installLocation="auto" android:versionName="3">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="31" />
 	<application android:label="Quix Tracker" android:theme="@style/MainTheme" android:icon="@mipmap/launcher_foreground"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
