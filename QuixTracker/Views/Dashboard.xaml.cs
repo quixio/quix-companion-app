@@ -300,8 +300,8 @@ namespace QuixTracker.Views
 
         async void Update_Clicked(System.Object sender, System.EventArgs e)
         {
-            this.connectionService.Settings.Firmware = this.NewFirmwareAvailable.FirmwareId;
-            this.Firmware = this.NewFirmwareAvailable.FirmwareId;
+            this.connectionService.Settings.Firmware = this.NewFirmwareAvailable.Version;
+            this.Firmware = this.NewFirmwareAvailable.Version;
             this.NewFirmwareAvailable = null;
 
             var timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000;

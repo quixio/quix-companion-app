@@ -14,8 +14,10 @@
         public string Message { get; set; }
     }
 
-    public class FirmwareUpdate : NotificationDTO
+    public class FirmwareUpdate
     {
-        public string FirmwareId { get; set; }
+        public string Version { get; set; }
+
+        public string CampaignId { get; set; }
     }
 }
