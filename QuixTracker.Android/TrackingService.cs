@@ -302,7 +302,7 @@ namespace QuixTracker.Droid
         {
             if (e.Id == "FirmwareUpdate")
             {
-                var firmwareUpdate = JsonSerializer.Deserialize<FirmwareUpdate>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = false });
+                var firmwareUpdate = JsonSerializer.Deserialize<FirmwareUpdate>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 this.connectionService.OnFirmwareUpdateReceived(firmwareUpdate);
             }
 
