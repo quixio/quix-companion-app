@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using QuixTracker.Models;
 using QuixTracker.Services;
 using System;
@@ -300,6 +301,7 @@ namespace QuixTracker.Views
 
         async void Update_Clicked(System.Object sender, System.EventArgs e)
         {
+            var campaignId = this.NewFirmwareAvailable.CampaignId;
             this.connectionService.Settings.Firmware = this.NewFirmwareAvailable.Version;
             this.Firmware = this.NewFirmwareAvailable.Version;
             this.NewFirmwareAvailable = null;
@@ -309,9 +311,15 @@ namespace QuixTracker.Views
             var payload = new EventDataDTO {
                 Id = "FirmwareUpdated",
                 Timestamp = timestamp,
-                Value = "Success"
+                Value = JsonConvert.SerializeObject(new FirmwareUpdatedDTO
+                {
+                    BikeId = this.connectionService.Settings.DeviceId,
+                    CampaignId = campaignId,
+                    Version = this.Firmware,
+                    Status = "Success"
+                })
             };
-            await this.quixServiceInstance.SendEventData("Somestuff", payload);
+            await this.quixServiceInstance.SendEventData("default", payload);
         }
     }
 }
