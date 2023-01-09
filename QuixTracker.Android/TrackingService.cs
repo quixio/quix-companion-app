@@ -247,7 +247,7 @@ namespace QuixTracker.Droid
                 try
                 {
                     await this.readerService.SubscribeToEvent(this.streamId, "notification");
-                    await this.readerService.SubscribeToEvent(this.streamId, "FirmwareUpdate");
+                    await this.readerService.SubscribeToEvent(this.connectionService.Settings.DeviceId, "FirmwareUpdate");
                 }
                 catch (Exception ex)
                 {
