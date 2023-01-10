@@ -66,14 +66,12 @@ namespace QuixTracker.Services
 
         }
 
-        public async Task SendEventData(string streamId, EventDataDTO data)
+        public async Task SendEventData(string streamId, EventDataDTO[] data)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             await this.Connection.InvokeAsync("SendEventData", this.connectionService.Settings.Topic, streamId, data);
-
             LoggingService.Instance.LogTrace("SEND in " + stopwatch.ElapsedMilliseconds);
-
         }
     }
 }

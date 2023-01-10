@@ -21,7 +21,7 @@ namespace QuixTracker.Views
         private bool reconnecting;
         private string errorMessage;
         private ConnectionService connectionService;
-        private QuixWriterService quixServiceInstance;
+        private QuixWriterService quixWriterService;
         private CurrentData currentData;
         private string speed;
         private string accuracy;
@@ -35,6 +35,7 @@ namespace QuixTracker.Views
         private string heartRate;
         private FirmwareUpdate newFirmwareAvailable;
         private string firmware;
+        private bool writerStarted = false;
 
         public bool Connected
         {
@@ -212,6 +213,8 @@ namespace QuixTracker.Views
 
             this.ConnectionService_OutputConnectionChanged(this, this.connectionService.OutputConnectionState);
             this.Firmware = this.connectionService.Settings.Firmware;
+
+            this.quixWriterService = new QuixWriterService(this.connectionService);
         }
 
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
@@ -308,18 +311,34 @@ namespace QuixTracker.Views
 
             var timestamp = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds * 1000000;
 
-            var payload = new EventDataDTO {
-                Id = "FirmwareUpdated",
-                Timestamp = timestamp,
-                Value = JsonConvert.SerializeObject(new FirmwareUpdatedDTO
+            var payload = new EventDataDTO[] 
+            {
+                new EventDataDTO
                 {
-                    BikeId = this.connectionService.Settings.DeviceId,
-                    CampaignId = campaignId,
-                    Version = this.Firmware,
-                    Status = "Success"
-                })
+                    Id = "FirmwareUpdated",
+                    Timestamp = timestamp,
+                    Value = JsonConvert.SerializeObject(new FirmwareUpdatedDTO
+                    {
+                        BikeId = this.connectionService.Settings.DeviceId,
+                        CampaignId = campaignId,
+                        Version = this.Firmware,
+                        Status = "Success"
+                    })
+                }
             };
-            await this.quixServiceInstance.SendEventData("default", payload);
+
+            if (!writerStarted)
+            {
+                try
+                {
+                    await this.quixWriterService.StartConnection();
+                    writerStarted= true;
+                } catch (Exception ex)
+                {
+                    LoggingService.Instance.LogError("Failed to start writer service", ex);
+                }
+            }
+            await this.quixWriterService.SendEventData(this.connectionService.Settings.DeviceId, payload);
         }
     }
 }
