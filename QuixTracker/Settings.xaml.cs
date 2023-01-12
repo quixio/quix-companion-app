@@ -198,6 +198,7 @@ namespace QuixTracker
             this.DeviceId = connectionService.Settings.DeviceId;
             this.Rider = connectionService.Settings.Rider;
             this.Team = connectionService.Settings.Team;
+            this.Firmware = connectionService.Settings.Firmware;
             this.LogGForce = connectionService.Settings.LogGForce;
             this.Interval = connectionService.Settings.Interval.ToString();
             
