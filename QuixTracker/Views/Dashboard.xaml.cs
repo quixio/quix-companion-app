@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using QuixTracker.Models;
 using QuixTracker.Services;
 using System;
@@ -36,7 +37,7 @@ namespace QuixTracker.Views
         private FirmwareUpdate newFirmwareAvailable;
         private string firmware;
         private bool writerStarted = false;
-
+        private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
         public bool Connected
         {
             get { return connected; }
@@ -323,7 +324,7 @@ namespace QuixTracker.Views
                         CampaignId = campaignId,
                         Version = this.Firmware,
                         Status = "Success"
-                    })
+                    }, this.jsonSettings)
                 }
             };
 
@@ -338,7 +339,7 @@ namespace QuixTracker.Views
                     LoggingService.Instance.LogError("Failed to start writer service", ex);
                 }
             }
-            await this.quixWriterService.SendEventData(this.connectionService.Settings.DeviceId, payload);
+            await this.quixWriterService.SendEventData("default", payload);
         }
     }
 }
