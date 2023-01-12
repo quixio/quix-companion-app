@@ -41,6 +41,7 @@ namespace QuixTracker.Views
         private FirmwareUpdate newFirmwareAvailable;
         private string firmware;
         private bool writerStarted = false;
+        private string newFirmwareMessage;
         private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly Task task;
 
@@ -111,6 +112,16 @@ namespace QuixTracker.Views
             set
             {
                 newFirmwareAvailable = value;
+                this.OnPropertyChanged();
+            }
+        }
+
+        public string NewFirmwareMessage
+        {
+            get { return newFirmwareMessage; }
+            set
+            {
+                newFirmwareMessage = value;
                 this.OnPropertyChanged();
             }
         }
@@ -261,6 +272,7 @@ namespace QuixTracker.Views
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
         {
             this.NewFirmwareAvailable = e;
+            this.NewFirmwareMessage = $"New firmware available: {e.Version}";
         }
 
         private void ConnectionService_DataReceived(object sender, CurrentData e)
