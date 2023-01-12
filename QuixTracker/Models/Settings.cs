@@ -181,7 +181,7 @@ namespace QuixTracker.Models
             if (string.IsNullOrWhiteSpace(this.SubDomain)) return "Subdomain is empty";
             if (string.IsNullOrWhiteSpace(this.Rider)) return "Rider is empty";
             if (string.IsNullOrWhiteSpace(this.DeviceId)) return "Device id is empty";
-            if (string.IsNullOrWhiteSpace(this.Firmware)) return "Firmware id is empty";
+            // if (string.IsNullOrWhiteSpace(this.Firmware)) return "Firmware id is empty";
             return "";
         }
     }

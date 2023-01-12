@@ -157,7 +157,7 @@ namespace QuixTracker
             {
                 firmware = value;
                 this.OnPropertyChanged();
-                connectionService.Settings.Team = value;
+                connectionService.Settings.Firmware = value;
             }
         }
 
@@ -209,7 +209,14 @@ namespace QuixTracker
 
             client = new HttpClient();
 
+            this.connectionService.FirmwareUpdated += ConnectionService_FirmwareUpdated;
+
             BindingContext = this;
+        }
+
+        private void ConnectionService_FirmwareUpdated(object sender, Models.FirmwareUpdate e)
+        {
+            this.Firmware = e.Version;
         }
 
         private async void ScanQrCodeOnClicked(object sender, EventArgs e)

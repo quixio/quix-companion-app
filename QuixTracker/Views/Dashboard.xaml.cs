@@ -357,6 +357,7 @@ namespace QuixTracker.Views
 
         async void Update_Clicked(System.Object sender, System.EventArgs e)
         {
+            var ev = this.NewFirmwareAvailable;
             var campaignId = this.NewFirmwareAvailable.CampaignId;
             this.connectionService.Settings.Firmware = this.NewFirmwareAvailable.Version;
             this.Firmware = this.NewFirmwareAvailable.Version;
@@ -392,6 +393,8 @@ namespace QuixTracker.Views
                 }
             }
             await this.writerService.SendEventData("default", payload);
+
+            this.connectionService.OnFirmwareUpdated(ev);
         }
     }
 }
