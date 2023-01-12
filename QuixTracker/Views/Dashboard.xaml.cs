@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace QuixTracker.Views
 {
@@ -22,7 +24,9 @@ namespace QuixTracker.Views
         private bool reconnecting;
         private string errorMessage;
         private ConnectionService connectionService;
-        private QuixWriterService quixWriterService;
+        private QuixWriterService writerService;
+        private readonly QuixReaderService readerService;
+        private readonly LoggingService loggingService;
         private CurrentData currentData;
         private string speed;
         private string accuracy;
@@ -38,6 +42,9 @@ namespace QuixTracker.Views
         private string firmware;
         private bool writerStarted = false;
         private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+        private readonly Task task;
+
+        #region properties
         public bool Connected
         {
             get { return connected; }
@@ -196,6 +203,7 @@ namespace QuixTracker.Views
                 this.OnPropertyChanged();
             }
         }
+#endregion
 
         public Dashboard()
         {
@@ -215,7 +223,40 @@ namespace QuixTracker.Views
             this.ConnectionService_OutputConnectionChanged(this, this.connectionService.OutputConnectionState);
             this.Firmware = this.connectionService.Settings.Firmware;
 
-            this.quixWriterService = new QuixWriterService(this.connectionService);
+            this.writerService = new QuixWriterService(this.connectionService);
+            this.readerService = new QuixReaderService(this.connectionService);
+            this.loggingService = LoggingService.Instance;
+
+            this.task = new Task(InitializeQuixServices);
+            this.task.Start();
+        }
+
+        private async void InitializeQuixServices()
+        {
+            await this.readerService.StartConnection();
+            await this.writerService.StartConnection();
+
+            try
+            {
+                await this.readerService.SubscribeToEvent(this.connectionService.Settings.DeviceId, "notification");
+                await this.readerService.SubscribeToEvent(this.connectionService.Settings.DeviceId, "FirmwareUpdate");
+            }
+            catch (Exception ex)
+            {
+                this.loggingService.LogError("Failed to subscribe to notifications", ex);
+            }
+
+            this.readerService.EventDataRecieved += QuixService_EventDataRecieved;
+        }
+
+        private void QuixService_EventDataRecieved(object sender, EventDataDTO e)
+        {
+            if (e.Id == "FirmwareUpdate")
+            {
+                var firmwareUpdate = JsonSerializer.Deserialize<FirmwareUpdate>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                this.connectionService.OnFirmwareUpdateReceived(firmwareUpdate);
+            }
+            var notification = JsonSerializer.Deserialize<NotificationDTO>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
@@ -332,14 +373,14 @@ namespace QuixTracker.Views
             {
                 try
                 {
-                    await this.quixWriterService.StartConnection();
+                    await this.writerService.StartConnection();
                     writerStarted= true;
                 } catch (Exception ex)
                 {
                     LoggingService.Instance.LogError("Failed to start writer service", ex);
                 }
             }
-            await this.quixWriterService.SendEventData("default", payload);
+            await this.writerService.SendEventData("default", payload);
         }
     }
 }
