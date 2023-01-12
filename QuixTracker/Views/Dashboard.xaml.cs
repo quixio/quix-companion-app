@@ -256,7 +256,6 @@ namespace QuixTracker.Views
                 var firmwareUpdate = JsonSerializer.Deserialize<FirmwareUpdate>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 this.connectionService.OnFirmwareUpdateReceived(firmwareUpdate);
             }
-            var notification = JsonSerializer.Deserialize<NotificationDTO>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
