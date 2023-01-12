@@ -45,7 +45,4 @@
       <DependentUpon>Logger.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Factories\" />
-  </ItemGroup>
 </Project>
