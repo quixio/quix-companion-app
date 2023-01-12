@@ -57,6 +57,9 @@
                     <Label Text="Subdomain"></Label>
                     <Entry Text="{Binding Subdomain}" HorizontalOptions="FillAndExpand" />
 
+                    <Label Text="Firmware Store Key"></Label>
+                    <Entry Text="{Binding FirmwareStoreKey}" HorizontalOptions="FillAndExpand" />
+
                 </StackLayout>
             </StackLayout>
         </ScrollView>

@@ -7,14 +7,6 @@ using System.Threading.Tasks;
 
 namespace QuixTracker.Services
 {
-    public class FirmwareService
-    {
-        public FirmwareService()
-        {
-
-        }
-    }
-
     public class QuixWriterService : QuixSignalRService
     {
         private readonly ConnectionService connectionService;

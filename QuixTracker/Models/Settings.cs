@@ -20,6 +20,7 @@ namespace QuixTracker.Models
         private string workspace;
         private string bluetoothDevice;
         private string firmware;
+        private string firmwareStoreKey;
 
         public Settings()
         {
@@ -35,7 +36,9 @@ namespace QuixTracker.Models
             this.Topic = Preferences.Get("Topic", "phone-data");
             this.NotificationsTopic = Preferences.Get("NotificationsTopic", "phone-out");
             this.SubDomain = Preferences.Get("SubDomain", "platform");
+
             this.Firmware = Preferences.Get("Firmware", "1.0.0.0");
+            this.FirmwareStoreKey = Preferences.Get("FirmwareStoreKey", null);
         }
 
         public string SubDomain
@@ -89,7 +92,6 @@ namespace QuixTracker.Models
             }
 
         }
-
 
         public string BluetoothDevice
         {
@@ -152,6 +154,16 @@ namespace QuixTracker.Models
             }
         }
 
+        public string FirmwareStoreKey
+        {
+            get { return firmwareStoreKey; }
+            set
+            {
+                firmwareStoreKey = value;
+                Preferences.Set("FirmwareStoreKey", value);
+            }
+        }
+
         public int Interval
         {
             get { return interval; }
@@ -181,7 +193,6 @@ namespace QuixTracker.Models
             if (string.IsNullOrWhiteSpace(this.SubDomain)) return "Subdomain is empty";
             if (string.IsNullOrWhiteSpace(this.Rider)) return "Rider is empty";
             if (string.IsNullOrWhiteSpace(this.DeviceId)) return "Device id is empty";
-            // if (string.IsNullOrWhiteSpace(this.Firmware)) return "Firmware id is empty";
             return "";
         }
     }

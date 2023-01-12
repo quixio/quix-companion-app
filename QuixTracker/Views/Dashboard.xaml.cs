@@ -3,10 +3,6 @@ using Newtonsoft.Json.Serialization;
 using QuixTracker.Models;
 using QuixTracker.Services;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -44,6 +40,7 @@ namespace QuixTracker.Views
         private string newFirmwareMessage;
         private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly Task task;
+        private readonly FleetService fleetService;
 
         #region properties
         public bool Connected
@@ -237,6 +234,7 @@ namespace QuixTracker.Views
             this.writerService = new QuixWriterService(this.connectionService);
             this.readerService = new QuixReaderService(this.connectionService);
             this.loggingService = LoggingService.Instance;
+            this.fleetService = new FleetService();
 
             this.task = new Task(InitializeQuixServices);
             this.task.Start();
@@ -258,6 +256,7 @@ namespace QuixTracker.Views
             }
 
             this.readerService.EventDataRecieved += QuixService_EventDataRecieved;
+            await this.fleetService.CheckFirmwareUpdates();
         }
 
         private void QuixService_EventDataRecieved(object sender, EventDataDTO e)
