@@ -42,6 +42,8 @@ namespace QuixTracker.Views
         private readonly Task task;
         private readonly FleetService fleetService;
 
+        private bool isTracking = false;
+
         #region properties
         public bool Connected
         {
@@ -221,14 +223,8 @@ namespace QuixTracker.Views
             BindingContext = this;
 
             this.connectionService = ConnectionService.Instance;
-
-            this.connectionService.OutputConnectionChanged += ConnectionService_OutputConnectionChanged;
-            this.connectionService.ConnectionError += ConnectionService_ConnectionError;
-
-            this.connectionService.DataReceived += ConnectionService_DataReceived;
             this.connectionService.FirmwareUpdateReceived += ConnectionService_FirmwareUpdateReceived;
 
-            this.ConnectionService_OutputConnectionChanged(this, this.connectionService.OutputConnectionState);
             this.Firmware = this.connectionService.Settings.Firmware;
 
             this.writerService = new QuixWriterService(this.connectionService);
@@ -289,6 +285,7 @@ namespace QuixTracker.Views
         {
             this.ErrorMessage = e;
         }
+
         private void QuixService_ConnectionError(object sender, string e)
         {
             this.ErrorMessage = e;
@@ -311,7 +308,6 @@ namespace QuixTracker.Views
                     this.Connecting = true;
                     this.Draining = false;
                     this.Disconnected = false;
-
                     break;
                 case ConnectionState.Reconnecting:
                     this.Reconnecting = true;
@@ -319,8 +315,6 @@ namespace QuixTracker.Views
                     this.Connecting = false;
                     this.Draining = false;
                     this.Disconnected = false;
-
-
                     break;
                 case ConnectionState.Disconnected:
                     this.Connected = false;
@@ -328,7 +322,12 @@ namespace QuixTracker.Views
                     this.Connecting = false;
                     this.Draining = false;
                     this.Disconnected = true;
-
+                    if (!this.isTracking)
+                    {
+                        this.connectionService.OutputConnectionChanged -= ConnectionService_OutputConnectionChanged;
+                        this.connectionService.ConnectionError -= ConnectionService_ConnectionError;
+                        this.connectionService.DataReceived -= ConnectionService_DataReceived;
+                    }
                     break;
                 case ConnectionState.Draining:
                     this.Connected = false;
@@ -342,11 +341,20 @@ namespace QuixTracker.Views
 
         private void OnButtonClicked(object sender, EventArgs e)
         {
+            this.isTracking = true;
+
+            this.connectionService.OutputConnectionChanged += ConnectionService_OutputConnectionChanged;
+            this.connectionService.ConnectionError += ConnectionService_ConnectionError;
+            this.connectionService.DataReceived += ConnectionService_DataReceived;
+
+            this.ConnectionService_OutputConnectionChanged(this, this.connectionService.OutputConnectionState);
+
             DependencyService.Get<IStartService>().StartForegroundServiceCompat();
         }
 
         private void OnStopClicked(object sender, EventArgs e)
         {
+            this.isTracking = false;
             DependencyService.Get<IStartService>().StopForegroundServiceCompat();
         }
 
