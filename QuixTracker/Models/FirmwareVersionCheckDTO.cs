@@ -7,5 +7,7 @@
         public string Target { get; set; }
 
         public string CampaignId { get; set; }
+
+        public FirmwareUpdatePushNotification Notification { get; set; }
     }
 }

@@ -40,7 +40,8 @@ namespace QuixTracker.Services
                             this.connectionService.OnFirmwareUpdateReceived(new FirmwareUpdate
                             {
                                 Version = dto.Target,
-                                CampaignId = dto.CampaignId
+                                CampaignId = dto.CampaignId,
+                                Notification = dto.Notification
                             });
                         }
                         else
