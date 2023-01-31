@@ -267,7 +267,7 @@ namespace QuixTracker.Views
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
         {
             this.NewFirmwareAvailable = e;
-            this.NewFirmwareMessage = $"New firmware available: {e.Version}";
+            this.NewFirmwareMessage = $"{e.Notification.Title}: {e.Notification.Text}";
         }
 
         private void ConnectionService_DataReceived(object sender, CurrentData e)
