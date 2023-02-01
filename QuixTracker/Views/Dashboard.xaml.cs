@@ -267,7 +267,21 @@ namespace QuixTracker.Views
         private void ConnectionService_FirmwareUpdateReceived(object sender, FirmwareUpdate e)
         {
             this.NewFirmwareAvailable = e;
-            this.NewFirmwareMessage = $"{e.Notification.Title}: {e.Notification.Text}";
+            if (e.Notification != null)
+            {
+                if (!string.IsNullOrEmpty(e.Notification.Title) && !string.IsNullOrEmpty(e.Notification.Text))
+                    this.NewFirmwareMessage = $"{e.Notification.Title}: {e.Notification.Text}";
+                else if (!string.IsNullOrEmpty(e.Notification.Title))
+                    this.NewFirmwareMessage = $"{e.Notification.Title}";
+                else if (!string.IsNullOrEmpty(e.Notification.Text))
+                    this.NewFirmwareMessage = $"{e.Notification.Title}";
+                else
+                    this.NewFirmwareMessage = $"New firmware available: {e.Version}";
+            }
+            else
+            {
+                this.NewFirmwareMessage = $"New firmware available: {e.Version}";
+            }
         }
 
         private void ConnectionService_DataReceived(object sender, CurrentData e)
