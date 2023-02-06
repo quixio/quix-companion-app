@@ -20,7 +20,6 @@ namespace QuixTracker.Models
         private string workspace;
         private string bluetoothDevice;
         private string firmware;
-        private string firmwareStoreKey;
 
         public Settings()
         {
@@ -38,7 +37,6 @@ namespace QuixTracker.Models
             this.SubDomain = Preferences.Get("SubDomain", "platform");
 
             this.Firmware = Preferences.Get("Firmware", "1.0.0.0");
-            this.FirmwareStoreKey = Preferences.Get("FirmwareStoreKey", null);
         }
 
         public string SubDomain
@@ -90,7 +88,6 @@ namespace QuixTracker.Models
                 token = value;
                 Preferences.Set("Token", value);
             }
-
         }
 
         public string BluetoothDevice
@@ -151,16 +148,6 @@ namespace QuixTracker.Models
             {
                 firmware = value;
                 Preferences.Set("Firmware", value);
-            }
-        }
-
-        public string FirmwareStoreKey
-        {
-            get { return firmwareStoreKey; }
-            set
-            {
-                firmwareStoreKey = value;
-                Preferences.Set("FirmwareStoreKey", value);
             }
         }
 

@@ -31,7 +31,6 @@ namespace QuixTracker
         private List<string> bluetoothDevices;
         private string firmware;
         private readonly HttpClient client;
-        private string firmwareStoreKey;
 
         #region props
         public string Workspace
@@ -162,17 +161,6 @@ namespace QuixTracker
             }
         }
 
-        public string FirmwareStoreKey
-        {
-            get { return firmwareStoreKey; }
-            set
-            {
-                firmwareStoreKey = value;
-                this.OnPropertyChanged();
-                connectionService.Settings.FirmwareStoreKey = value;
-            }
-        }
-
         public string Interval
         {
             get { return interval; }
@@ -219,8 +207,6 @@ namespace QuixTracker
             this.Topic = connectionService.Settings.Topic;
             this.NotificationsTopic = connectionService.Settings.NotificationsTopic;
             this.Subdomain = connectionService.Settings.SubDomain;
-
-            this.firmwareStoreKey = connectionService.Settings.FirmwareStoreKey;
 
             client = new HttpClient();
 

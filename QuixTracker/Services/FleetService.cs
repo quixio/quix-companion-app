@@ -19,14 +19,14 @@ namespace QuixTracker.Services
             this.connectionService = ConnectionService.Instance;
             this.logger = LoggingService.Instance;
             this.localLogger = Logger.Instance;
-            this.http.DefaultRequestHeaders.Add("X-API-KEY", this.connectionService.Settings.FirmwareStoreKey ?? "");
+            this.http.DefaultRequestHeaders.Add("Authorization", $"bearer {this.connectionService.Settings.Token}");
         }
 
         public async Task CheckFirmwareUpdates()
         {
             try
             {
-                if (this.connectionService.Settings.FirmwareStoreKey != null)
+                if (this.connectionService.Settings.Token != null)
                 {
                     var settings = this.connectionService.Settings;
                     var url = $"https://fleet-management-api-{settings.WorkspaceId}.deployments.quix.ai" +
