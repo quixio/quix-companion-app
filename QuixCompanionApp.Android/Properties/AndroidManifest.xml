@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="11" package="com.quix.quixcompanionapp" android:installLocation="auto" android:versionName="11">
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
+	<application android:label="Quix Companion App" android:theme="@style/MainTheme" android:icon="@mipmap/launcher_foreground"></application>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
+	<uses-feature android:name="android.hardware.location.network" android:required="false" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<!--<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+	<uses-permission android:name="android.permission.BLUETOOTH" />
+	<uses-permission android:name="android.permission.BATTERY_STATS" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+	<uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
+	<!-- Request legacy Bluetooth permissions on older devices. -->
+	<uses-permission android:name="android.permission.BLUETOOTH" />
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+	<!-- Needed only if your app looks for Bluetooth devices.
+             If your app doesn't use Bluetooth scan results to derive physical
+             location information, you can strongly assert that your app
+             doesn't derive physical location. -->
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+	<!-- Needed only if your app makes the device discoverable to Bluetooth
+      devices. -->
+	<uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+	<!-- Needed only if your app communicates with already-paired Bluetooth
+           devices. -->
+	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<!--bibo01 : hardware option-->
+	<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+	<uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+</manifest>
