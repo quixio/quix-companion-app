@@ -15,15 +15,20 @@ using Xamarin.Essentials;
 using System.Threading;
 using System.Collections.Concurrent;
 using QuixTracker.Services;
-using System.Text.Json;
 using Plugin.Geolocator.Abstractions;
 using Plugin.Geolocator;
 using QuixTracker.Models;
-using Plugin.Permissions;
-using Xamarin.Forms.PlatformConfiguration;
 
 namespace QuixTracker.Droid
 {
+    public static class BlockingCollectionExtensions
+    {
+        public static Task<T>TakeAsync<T>(this BlockingCollection<T> collection, CancellationToken cancellationToken)
+        {
+            return Task.Factory.StartNew(() => collection.Take(cancellationToken));
+        }
+    }
+
     [Service(ForegroundServiceType = ForegroundService.TypeLocation, Exported = true)]
     public class TrackingService : Service, ISensorEventListener
     {
@@ -41,7 +46,6 @@ namespace QuixTracker.Droid
         private ConcurrentDictionary<long, Tuple<double, double, double>> gforces = new ConcurrentDictionary<long, Tuple<double, double, double>>();
         private ConcurrentDictionary<long, double> temperatures = new ConcurrentDictionary<long, double>();
         private ConnectionService connectionService;
-        private QuixReaderService readerService;
         private QuixWriterService writerService;
         private DateTime lastErrorMessage = DateTime.Now;
         private Sensor gyroSensor;
@@ -55,7 +59,6 @@ namespace QuixTracker.Droid
         public TrackingService()
         {
             this.connectionService = ConnectionService.Instance;
-            this.readerService = new QuixReaderService(this.connectionService);
             this.writerService = new QuixWriterService(this.connectionService);
 
             var context = Android.App.Application.Context;
@@ -135,17 +138,23 @@ namespace QuixTracker.Droid
             }
             finally
             {
-                StopSelf();
-                await this.writerService.StopAsync();
-                await this.writerService.DisposeAsync();
+                try
+                {
+                    StopSelf();
+                    await this.writerService.StopAsync();
+                    await this.writerService.DisposeAsync();
 
-                await this.readerService.StopAsync();
-                await this.readerService.DisposeAsync();
-
-                OnPause();
-                await CrossGeolocator.Current.StopListeningAsync();
-                this.connectionService.ClearError();
-                this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
+                    OnPause();
+                    await CrossGeolocator.Current.StopListeningAsync();
+                    this.connectionService.ClearError();
+                    this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
+                }
+                catch(Exception ex)
+                {
+                    Logger.Instance.Log(ex.ToString());
+                    this.connectionService.OnConnectionError(ex.Message, ex);
+                    this.connectionService.OnOutputConnectionChanged(ConnectionState.Disconnected);
+                }
             }
         }
 
@@ -205,46 +214,22 @@ namespace QuixTracker.Droid
             try
             {
                 this.connectionService.OnOutputConnectionChanged(ConnectionState.Connecting);
-                try
-                {
-                    await RetryService.Execute(async () => await this.readerService.StartConnection());
-                }
-                catch (Exception ex)
-                {
-                    this.loggingService.LogError("Failed to start input connection", ex);
-                }
-
-                await RetryService.Execute(async () => await this.writerService.StartConnection(), -1, 1000, (ex) =>
-                {
-                    this.notificationService.SendForegroundNotification("Quix Tracker", "Failed to connect to Quix");
-                    this.connectionService.OnConnectionError("Failed to connect to Quix", ex);
-                });
+                await this.writerService.StartConnection();
 
                 this.CleanErrorMessage();
 
-                this.streamId = await RetryService.Execute(async () => await this.writerService.CreateStream(
+                this.streamId = await this.writerService.CreateStream(
                     this.connectionService.Settings.DeviceId,
                     this.connectionService.Settings.Rider,
                     this.connectionService.Settings.Team,
-                    this.connectionService.Settings.SessionName), -1, 1000, (ex) => this.connectionService.OnConnectionError("Error: failed to create output stream", ex));
+                    this.connectionService.Settings.SessionName);
 
                 this.CleanErrorMessage();
-
-                try
-                {
-                    await RetryService.Execute(async () => await this.readerService.SubscribeToEvent(this.streamId, "notification"));
-                }
-                catch (Exception ex)
-                {
-                    this.loggingService.LogError("Failed to subscribe to notifications", ex);
-                }
-
-                this.readerService.EventDataRecieved += QuixService_EventDataRecieved;
 
                 await this.StartGeoLocationTracking();
                 this.queueConsumer = this.ConsumeQueue();
 
-                this.notificationService.SendForegroundNotification("Quix Tracker", "Tracking in progress...");
+                this.notificationService.SendForegroundNotification("Quix Tracker", "Tracking in progress");
                 this.loggingService.LogInformation("Tracking in progress");
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -258,27 +243,25 @@ namespace QuixTracker.Droid
             }
             catch (Exception ex)
             {
-                Logger.Instance.Log(ex.ToString());
-                this.connectionService.OnConnectionError(ex.Message, ex);
-                this.lastErrorMessage = DateTime.Now;
-                this.connectionService.OnInputConnectionChanged(ConnectionState.Disconnected);
-                StopSelf();
-                await this.writerService.StopAsync();
-                await this.writerService.DisposeAsync();
-
-                await this.readerService.StopAsync();
-                await this.readerService.DisposeAsync();
-                OnPause();
-                await CrossGeolocator.Current.StopListeningAsync();
+                try
+                {
+                    Logger.Instance.Log(ex.ToString());
+                    this.connectionService.OnConnectionError(ex.Message, ex);
+                    this.lastErrorMessage = DateTime.Now;
+                    StopSelf();
+                    await this.writerService.StopAsync();
+                    await this.writerService.DisposeAsync();
+                    OnPause();
+                    await CrossGeolocator.Current.StopListeningAsync();
+                }
+                catch (Exception ex2) {
+                    Logger.Instance.Log(ex2.ToString());
+                }
+                finally
+                {
+                    this.connectionService.OnInputConnectionChanged(ConnectionState.Disconnected);
+                }
             }
-        }
-
-
-        private void QuixService_EventDataRecieved(object sender, EventDataDTO e)
-        {
-            var notification = JsonSerializer.Deserialize<NotificationDTO>(e.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            this.notificationService.SendNotifcation(notification.Title, notification.Content);
-            this.currentData.Message = $"{DateTime.Now.TimeOfDay.ToString()}: {notification.Title}\n {notification.Content}";
         }
 
         private void OnResume()
@@ -305,7 +288,7 @@ namespace QuixTracker.Droid
 
                     if (data == null && !this.locationQueue.TryTake(out data))
                     {
-                        data = this.locationQueue.Take(this.cancellationTokenSource.Token);
+                        data = await this.locationQueue.TakeAsync(this.cancellationTokenSource.Token);
                     }
 
                     LoggingService.Instance.LogTrace("Queue: " + this.locationQueue.Count);
@@ -391,6 +374,7 @@ namespace QuixTracker.Droid
                                 {"version", new string[]{ this.packageInfo.VersionName } },
                                 {"rider", new string[]{ this.connectionService.Settings.Rider} },
                                 {"team", new string[]{ this.connectionService.Settings.Team} },
+                                {"device_id", new string[]{ this.connectionService.Settings.DeviceId} },
                             }
                     });
 
@@ -453,6 +437,8 @@ namespace QuixTracker.Droid
                                 {"version", new string[]{ this.packageInfo.VersionName } },
                                 {"rider", new string[]{ this.connectionService.Settings.Rider} },
                                 {"team", new string[]{ this.connectionService.Settings.Team} },
+                                {"device_id", new string[]{ this.connectionService.Settings.DeviceId} }
+
                             }
 
             };

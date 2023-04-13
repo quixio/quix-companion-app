@@ -1,3 +1,4 @@
+using QuixTracker.Services;
 using QuixTracker.Views;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,9 @@ namespace QuixTracker
             // Build the Menu
 
             // Set the default page, this is the "home" page.
-            Detail = new NavigationPage(new Dashboard());
+            Detail = ConnectionService.Instance.Settings.CheckSettings() == ""
+                ? new NavigationPage(new Dashboard())
+                : new NavigationPage(new Settings());
 
             Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Best)).ContinueWith(_ => { });
         }

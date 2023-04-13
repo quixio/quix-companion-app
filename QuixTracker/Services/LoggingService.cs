@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using QuixTracker.Models;
+using Xamarin.Forms.PlatformConfiguration;
 
 namespace QuixTracker.Services
 {

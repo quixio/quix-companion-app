@@ -27,10 +27,20 @@ namespace QuixTracker.Services
         public event EventHandler<ConnectionState> OutputConnectionChanged;
         public event EventHandler<string> ConnectionError;
         public event EventHandler<CurrentData> DataReceived;
+        public event EventHandler<FirmwareUpdate> FirmwareUpdateReceived;
+        public event EventHandler<FirmwareUpdate> FirmwareUpdated;
 
         public ConnectionState OutputConnectionState { get; private set; }
 
-       
+        public void OnFirmwareUpdateReceived(FirmwareUpdate data)
+        {
+            FirmwareUpdateReceived?.Invoke(this, data);
+        }
+
+        public void OnFirmwareUpdated(FirmwareUpdate data)
+        {
+            FirmwareUpdated?.Invoke(this, data);
+        }
 
         public ConnectionService()
         {

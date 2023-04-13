@@ -19,6 +19,7 @@ namespace QuixTracker.Models
         private string notificationsTopic;
         private string workspace;
         private string bluetoothDevice;
+        private string firmware;
 
         public Settings()
         {
@@ -34,6 +35,8 @@ namespace QuixTracker.Models
             this.Topic = Preferences.Get("Topic", "phone-data");
             this.NotificationsTopic = Preferences.Get("NotificationsTopic", "phone-out");
             this.SubDomain = Preferences.Get("SubDomain", "platform");
+
+            this.Firmware = Preferences.Get("Firmware", "1.0.0.0");
         }
 
         public string SubDomain
@@ -85,9 +88,7 @@ namespace QuixTracker.Models
                 token = value;
                 Preferences.Set("Token", value);
             }
-
         }
-
 
         public string BluetoothDevice
         {
@@ -137,6 +138,16 @@ namespace QuixTracker.Models
             {
                 team = value;
                 Preferences.Set("Team", value);
+            }
+        }
+
+        public string Firmware
+        {
+            get { return firmware; }
+            set
+            {
+                firmware = value;
+                Preferences.Set("Firmware", value);
             }
         }
 

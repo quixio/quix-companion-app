@@ -42,7 +42,8 @@
                      <Label Text="Session name (optional):"></Label>
                     <Entry Text="{Binding SessionName}" HorizontalOptions="FillAndExpand" />
 
-
+                    <Label Text="Firmware"></Label>
+                    <Entry Text="{Binding Firmware}" HorizontalOptions="FillAndExpand" IsReadOnly="True" />
 
                     <Label Text="Log G force: "></Label>
                     <CheckBox IsChecked="{Binding LogGForce}"
