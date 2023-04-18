@@ -238,8 +238,15 @@ namespace QuixCompanionApp.Views
 
         private async void InitializeQuixServices()
         {
-            await this.readerService.StartConnection();
-            await this.writerService.StartConnection();
+            try
+            {
+                await this.readerService.StartConnection();
+                await this.writerService.StartConnection();
+            }
+            catch (Exception ex)
+            {
+                this.loggingService.LogError("Failed to start connection", ex);
+            }
 
             try
             {
