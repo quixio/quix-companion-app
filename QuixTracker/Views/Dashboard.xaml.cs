@@ -238,11 +238,12 @@ namespace QuixTracker.Views
 
         private async void InitializeQuixServices()
         {
-            await this.readerService.StartConnection();
-            await this.writerService.StartConnection();
-
+            
             try
             {
+                await this.readerService.StartConnection();
+                await this.writerService.StartConnection();
+
                 await this.readerService.SubscribeToEvent(this.connectionService.Settings.DeviceId, "notification");
                 await this.readerService.SubscribeToEvent(this.connectionService.Settings.DeviceId, "FirmwareUpdate");
             }
