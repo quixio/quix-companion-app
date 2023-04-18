@@ -1,20 +1,22 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+
+Quix Companion App is a mobile application developed by Quix to stream telemetry data such as speed, location, battery level from mobile phones to Quix workspaces. Quix Companion App is intended for simulating real-time acquisition and streaming of telemetry data and testing prototypes on Quix.
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+
+Quix Companion App is available for download on Google Play Store. In order to use the app, you need to pair it with a Quix workspace. If you are invited to use the app by someone from your organization, please contact them for information about pairing the app with your organization's workspace.
+
+  - If you do not have a Quix account, you can create a free account by signing up from our [website](https://quix.io/).
+  - Deploy the QR code generator in the project templates on Quix to your workspace. 
+  - Navigate to the URL where the QR code generator is, enter user details and scan the QR code using the app.
+  - Go to the dashboard from the side navigation and press "START" to start streaming your telemetry data.
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+
+You can build and run the project using Visual Studio 2022 IDE with Xamarin.
 
 # Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+One of the best ways to get involved is to join the discussions in [The Stream](https://quix.io/community/) Slack channel. If you come across any bugs or have feature requests, please create a issue in GitHub. If you like to contribute to the code, we welcome pull requests to this repository (please create an issue on GitHub first to avoid duplication of effort). Documentation related to this app is in [quix-docs](https://github.com/quixio/quix-docs) GitHub repository .
+
+If you would like to report a security issue, please reach out to us on Slack and let us know that you have an issue to report. One of our developers will get in touch with you for more information.
