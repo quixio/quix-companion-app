@@ -47,7 +47,14 @@ namespace QuixCompanionApp.Services
                 return Task.CompletedTask;
             };
 
-            await this.connection.StartAsync();
+            try
+            {
+                await this.connection.StartAsync();
+            }
+            catch (Exception e)
+            {
+                LoggingService.Instance.LogError("SignalR connection failed", e);
+            }
         }
 
         public async Task StopAsync()
